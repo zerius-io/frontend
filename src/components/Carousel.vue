@@ -62,6 +62,9 @@ export default defineComponent({
 </script>
   
 <style lang=scss>
+$medium: 1500px;
+$small: 1050px;
+
 .carousel__wrapper {
     margin: 2rem auto;
 
@@ -69,6 +72,10 @@ export default defineComponent({
 
     overflow-y: visible;
     overflow-x: hidden;
+
+    @media screen and (max-width: $medium) {
+        margin: 2rem;
+    }
 }
 
 .carousel__viewport {
@@ -96,9 +103,9 @@ export default defineComponent({
 
     flex-shrink: 0;
 
-    -webkit-box-shadow: -1px -1px 20px -18px rgba(0, 0, 0, 0.62);
-    -moz-box-shadow: -1px -1px 20px -18px rgba(0, 0, 0, 0.62);
-    box-shadow: -1px -1px 20px -18px rgba(0, 0, 0, 0.62);
+    -webkit-box-shadow: -4px -4px 20px -18px rgba(0, 0, 0, 0.62);
+    -moz-box-shadow: -4px -4px 20px -18px rgba(0, 0, 0, 0.62);
+    box-shadow: -4px -4px 20px -18px rgba(0, 0, 0, 0.62);
 }
 
 .carousel__slide--sliding {

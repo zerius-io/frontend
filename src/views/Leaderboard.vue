@@ -1,5 +1,5 @@
 <template>
-    Leaderboard
+    <!-- Leaderboard -->
 </template>
   
 <script lang="ts">

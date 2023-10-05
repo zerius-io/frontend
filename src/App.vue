@@ -90,6 +90,12 @@ body::after {
   min-height: 100vh;
 }
 
+.flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 h1 {
   margin: 2.6rem auto;
 
@@ -120,13 +126,18 @@ button,
   &:active {
     transform: scale(0.9);
   }
+
+  &:disabled {
+    color: #fff;
+    background: var(--gray, #A1A1A9);
+  }
 }
 
 button,
 select,
 .custom-select {
   width: 11.1875rem;
-  height: 3rem;
+  // height: 3rem;
 
   cursor: pointer;
 
@@ -138,18 +149,23 @@ select,
   color: var(--blue, #2C6EFF);
   text-align: center;
 
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   border: 1px solid var(--blue, #2C6EFF);
   background: rgba(255, 255, 255, 0.50);
   box-shadow: 0px 0px 8px 0px rgba(205, 218, 252, 0.20);
   backdrop-filter: blur(3px);
 }
 
-.flex {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+button {
+  &:disabled {
+    text-transform: capitalize;
+    letter-spacing: 0.1rem;
+
+    border: none;
+    box-shadow: none;
+  }
 }
+
 
 select,
 option,
@@ -158,18 +174,35 @@ option,
   text-transform: capitalize;
 }
 
-.button__full {
-  width: 15rem;
-  height: 3rem;
+.button {
+  color: var(--blue, #2C6EFF);
 
-  color: #fff;
+  border: 1px solid var(--blue, #2C6EFF);
+  background: rgba(255, 255, 255, 0.50);
+  box-shadow: 0px 0px 8px 0px rgba(205, 218, 252, 0.20);
 
-  text-transform: uppercase;
-  letter-spacing: 0.45rem;
+  &__full {
+    color: #fff;
 
-  border-radius: 0.75rem;
-  background: var(--blue, #2C6EFF);
-  box-shadow: 0px 0px 16px 0px rgba(44, 110, 255, 0.50);
+    border-radius: 0.75rem;
+    background: var(--blue, #2C6EFF);
+    box-shadow: 0px 0px 16px 0px rgba(44, 110, 255, 0.50);
+
+    &-uppercase {
+      color: #fff;
+
+      border-radius: 0.75rem;
+      background: var(--blue, #2C6EFF);
+      box-shadow: 0px 0px 16px 0px rgba(44, 110, 255, 0.50);
+
+      text-transform: uppercase;
+      letter-spacing: 0.45rem;
+    }
+  }
+}
+
+select {
+  background: rgba(255, 255, 255, 0.50);
 }
 
 .router-link {

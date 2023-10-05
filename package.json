@@ -9,8 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@rainbow-me/rainbowkit": "^1.0.12",
+    "@vitejs/plugin-react": "^4.1.0",
+    "@vitejs/plugin-vue-jsx": "^3.0.2",
+    "@vue/reactivity": "^3.3.4",
     "@web3-onboard/coinbase": "^2.2.6",
-    "@web3-onboard/core": "^2.21.2",
     "@web3-onboard/fortmatic": "^2.0.19",
     "@web3-onboard/gnosis": "^2.2.0",
     "@web3-onboard/infinity-wallet": "^2.0.4",
@@ -18,10 +21,14 @@
     "@web3-onboard/trust": "^2.0.4",
     "@web3-onboard/vue": "^2.7.12",
     "ethers": "^6.7.1",
-    "pinia": "^2.1.6",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "use-wagmi": "^0.4.1",
+    "viem": "^1.15.3",
     "vue": "^3.3.4",
     "vue-router": "^4.2.5",
-    "vue3-carousel": "^0.3.1"
+    "vue3-carousel": "^0.3.1",
+    "wagmi": "^1.4.3"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.2.3",

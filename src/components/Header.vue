@@ -5,13 +5,13 @@
         </router-link>
 
         <div style="display: flex;">
-            <router-link to="/" class="nav">
+            <router-link to="/" :class="{ active: route.path === '/leaderboard' }" class="nav">
                 <h3>Mint</h3>
             </router-link>
-            <router-link to="/leaderboard" :class="{ active: $route.path === '/leaderboard' }" class="nav"
-                style="position: relative;">
+            <span to="/leaderboard" :class="{ active: route.path === '/leaderboard' }"
+                style="position: relative; cursor: pointer">
                 <h3>Leaderboard <span class="soon-tip">soon</span></h3>
-            </router-link>
+            </span>
         </div>
 
         <WalletConnector />
@@ -19,15 +19,13 @@
 </template>
   
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, ref, onMounted } from 'vue';
 
 import WalletConnector from './WalletConnector.vue'
 
 import logoImg from '/img/logo.svg'
 
 import { useRoute } from 'vue-router'
-
-const $route = useRoute()
 
 export default defineComponent({
     name: 'Header-component',
@@ -38,7 +36,16 @@ export default defineComponent({
         return {
             logoImg: logoImg
         }
-    }
+    },
+    setup() {
+        const route = useRoute()
+        const logoImgSrc = ref(logoImg)
+
+        return {
+            route,
+            logoImg: logoImgSrc,
+        };
+    },
 })
 </script>
   
