@@ -27,7 +27,7 @@ export default defineComponent({
     },
     methods: {
         fetchImagesFromFolder() {
-            const imageContext = import.meta.glob('/src/assets/img/carousel/*.{png,jpg,jpeg,gif,svg}')
+            const imageContext = import.meta.glob('@/assets/img/carousel/*.{png,jpg,jpeg,gif,svg}')
 
             this.images = Object.values(imageContext).map(path => path.name)
 
@@ -113,7 +113,7 @@ $small: 1050px;
 }
 
 .carousel__slide {
-    opacity: 0.9;
+    opacity: 1;
     transform: rotateY(58deg) scale(0.8);
 }
 

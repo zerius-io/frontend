@@ -9,7 +9,7 @@
                 <h3>Mint</h3>
             </router-link>
             <span to="/leaderboard" :class="{ active: route.path === '/leaderboard' }"
-                style="position: relative; cursor: pointer">
+                style="position: relative">
                 <h3>Leaderboard <span class="soon-tip">soon</span></h3>
             </span>
         </div>
@@ -82,8 +82,17 @@ $small: 1050px;
     }
 
     @media screen and (max-width: $small) {
+        .logo {
+            width: 7rem;
+            height: 2rem;
+        }
+
         .nav {
             display: none;
+        }
+
+        span {
+            display: none
         }
     }
 }

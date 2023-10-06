@@ -1,53 +1,35 @@
 <template>
-    <div class="select" :tabindex="tabindex" @blur="open = false" :class="{ open: open }">
+    <div class="select" @blur="open = false" :class="{ open: open }">
         <div class="select__selected" :class="{ open: open }" @click="open = !open">
             <template v-if="selected">
-                <img :src="getImageSrc(selected)" alt="" class="select__icon" />
+                <img :src="getImageSrc(selected)" class="select__icon" />
             </template>
-            {{ selected?.label }}
+            {{ selected.label }}
         </div>
 
         <div class="select__items" :class="{ select__hide: !open }">
             <div v-for="(option, i) of filteredOptions" :key="i" @click="selectOption(option)" class="select__items-item">
-                <template v-if="option">
-                    <img :src="getImageSrc(option)" alt="" class="select__icon" />
-                </template>
-                {{ option?.label }}
+                <img :src="getImageSrc(option)" class="select__icon" />
+                {{ option.label }}
             </div>
         </div>
     </div>
 </template>
   
 <script lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, toRaw } from 'vue'
 
 export default {
     props: {
         options: {
             type: Array,
             required: true,
-        },
-        default: {
-            type: String,
-            required: false,
-            default: null,
-        },
-        tabindex: {
-            type: Number,
-            required: false,
-            default: 0,
-        },
+        }
     },
     setup(props, { emit }) {
-        const selected = ref(
-            props.default
-                ? props.default
-                : props.options.length > 0
-                    ? props.options[0]
-                    : null
-        )
         const open = ref(false)
 
+        const selected = ref(props.options[0] || null)
         const filteredOptions = computed(() => {
             return props.options.filter((option) => option !== selected.value)
         })
@@ -55,6 +37,7 @@ export default {
         const selectOption = (option) => {
             selected.value = option
             open.value = false
+
             emit('change')
             emit('input', option)
         }

@@ -9,18 +9,29 @@
         <Spinner v-if="minting" />
     </button>
 
+    <div v-if="connectedWallet">
+        Connected Wallet: {{ connectedWallet?.accounts[0]?.address }}
+    </div>
+    <!-- <div v-if="selectedChain">
+        Connected Chain: {{ selectedChain }}
+    </div> -->
+
     <Collection />
 </template>
   
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, ref, computed } from 'vue'
 import { ethers } from 'ethers'
 
-import ABI from '@/assets/ABI.json'
+import store from '@/stores/store';
+
+import Zerius from '../components/config'
 
 import Carousel from '../components/Carousel.vue'
 import Spinner from '../components/Spinner.vue'
 import Collection from '../components/Collection.vue'
+
+import ABI from '@/assets/ABI.json'
 
 export default defineComponent({
     name: 'Mint',
@@ -29,46 +40,59 @@ export default defineComponent({
         Spinner,
         Collection
     },
-    data() {
-        return {
-            minting: false,
-        }
-    },
-    methods: {
-        async mintNFT() {
+    setup() {
+        const minting = ref(false);
+
+        async function mintNFT() {
             try {
-                // Check if the user has MetaMask or another Ethereum provider installed
+                minting.value = true;
+
                 if (window.ethereum) {
-                    this.minting = true
+                    const web3 = window.ethereum
 
-                    const provider = new ethers.providers.Web3Provider(window.ethereum)
-                    const signer = provider.getSigner()
+                    const CHAIN = {
+                        id: 80001,
+                        token: 'MATIC',
+                        label: 'Mumbai',
+                        rpcUrl: 'https://polygon-mumbai-bor.publicnode.com',
+                        icon: 'polygon.svg'
+                    }
 
-                    // Replace 'yourContractABI' and 'yourContractAddress' with your actual ABI and address
-                    const contractAddress = '0x...'
+                    console.log(web3)
 
-                    // Create contract instance
-                    const contract = new ethers.Contract(contractAddress, ABI, signer)
+                    const provider = new ethers.BrowserProvider(window.ethereum)
+                    // It will prompt user for account connections if it isnt connected
+                    const signer = await provider.getSigner();
+                    console.log("Account:", await signer.getAddress())
 
-                    // Replace 'mint' with the actual name of your mint function and provide required parameters
+                    // const provider = new ethers.JsonRpcProvider(web3);
+                    // const contractAddress = Zerius.getContractForChain(selectedChain.id);
+                    const contractAddress = Zerius.getContractForChain(CHAIN.id);
+                    const contract = new ethers.Contract(contractAddress, ABI, signer);
+
                     const transaction = await contract.mint()
-
-                    // Wait for the transaction to be mined
                     const receipt = await transaction.wait()
 
-                    console.log('Minting successful:', receipt)
+                    console.log('Minting successful:', receipt);
 
-                    this.minting = false
+                    minting.value = false;
                 } else {
-                    console.error('Ethereum provider not available')
+                    console.error('Ethereum provider not available');
                 }
             } catch (error) {
-                console.error('Error minting NFT:', error)
+                console.error('Error minting NFT:', error);
+                minting.value = false;
             }
         }
+
+        return {
+            minting,
+            mintNFT,
+            connectedWallet: computed(() => store.getters.getConnectedWallet()),
+            selectedChain: computed(() => store.getters.getSelectedChain()),
+        };
     }
 })
 </script>
   
 <style lang="scss"></style>
-  

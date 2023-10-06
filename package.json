@@ -5,12 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc && vite build",
-    "preview": "vite preview"
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview --host"
   },
   "dependencies": {
-    "@rainbow-me/rainbowkit": "^1.0.12",
-    "@vitejs/plugin-react": "^4.1.0",
     "@vitejs/plugin-vue-jsx": "^3.0.2",
     "@vue/reactivity": "^3.3.4",
     "@web3-onboard/coinbase": "^2.2.6",
@@ -21,14 +19,10 @@
     "@web3-onboard/trust": "^2.0.4",
     "@web3-onboard/vue": "^2.7.12",
     "ethers": "^6.7.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "use-wagmi": "^0.4.1",
     "viem": "^1.15.3",
     "vue": "^3.3.4",
     "vue-router": "^4.2.5",
-    "vue3-carousel": "^0.3.1",
-    "wagmi": "^1.4.3"
+    "vue3-carousel": "^0.3.1"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.2.3",

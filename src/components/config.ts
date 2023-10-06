@@ -1,5 +1,12 @@
 const chains = [
     {
+        id: 80001,
+        token: 'MATIC',
+        label: 'Mumbai',
+        rpcUrl: 'https://polygon-mumbai-bor.publicnode.com',
+        icon: 'polygon.svg'
+    },
+    {
         id: 1,
         token: 'ETH',
         label: 'Ethereum',
@@ -10,6 +17,12 @@ const chains = [
         token: 'ETH',
         label: 'Arbitrum',
         rpcUrl: 'https://rpc.ankr.com/arbitrum'
+    },
+    {
+        id: 137,
+        token: 'MATIC',
+        label: 'Polygon',
+        rpcUrl: 'https://polygon-bor.publicnode.com',
     },
     {
         id: 56,
@@ -59,6 +72,23 @@ const contracts = {
     80001: '0x75023ffe91dd4d67D0Ce5a4b0C376aa22708f1Fb',
     // base goerli
     84531: '0x23e196CC4652bc272F80c04362a30b3db87F2cB9'
+}
+
+export default class Zerius {
+    static get chains() {
+        return chains
+    }
+    static get lzChains() {
+        return lzChains
+    }
+
+    static get contracts() {
+        return contracts
+    }
+
+    static getContractForChain(chainId: number) {
+        return this.contracts[chainId]
+    }
 }
 
 

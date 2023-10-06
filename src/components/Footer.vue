@@ -47,6 +47,8 @@ export default defineComponent({
 </script>
   
 <style lang="scss">
+$small: 600px;
+
 .footer {
     bottom: 0;
 
@@ -55,6 +57,16 @@ export default defineComponent({
 
         width: 2.25rem;
         height: 2.25rem;
+    }
+}
+
+@media screen and (max-width: $small) {
+    .footer {
+        flex-direction: column-reverse;
+
+        .icon {
+            margin: 1.5rem 2rem;
+        }
     }
 }
 </style>

@@ -24,6 +24,9 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
+$medium: 1500px;
+$small: 700px;
+
 @font-face {
   font-family: 'Space Grotesk';
   font-style: normal;
@@ -61,11 +64,8 @@ body {
   // background: linear-gradient(90deg, rgba(249, 237, 234, 1) 3%, rgba(255, 238, 238, 1) 66%, rgba(248, 242, 211, 1) 96%, rgba(255, 255, 255, 1) 100%);
   // background: linear-gradient(200deg, rgba(249, 237, 234, 1) 7%, rgba(255, 238, 238, 1) 58%, rgba(248, 242, 211, 1) 96%, rgba(255, 255, 255, 1) 100%);
 
-  // background-image: url('/img/bg.png');
-  // background-repeat: repeat;
   background: rgb(249, 237, 234);
   background: linear-gradient(90deg, rgba(249, 237, 234, 1) 3%, rgba(255, 238, 238, 1) 66%, rgba(248, 242, 211, 1) 96%), url('/img/bg.png');
-  // background-image: url('/img/bg.png');
 }
 
 body::after {
@@ -166,7 +166,6 @@ button {
   }
 }
 
-
 select,
 option,
 .custom-select,
@@ -228,5 +227,41 @@ select {
   font-size: 12px;
   border-radius: 0.5rem 0.125rem;
   background: var(--blue, #2C6EFF);
+}
+
+@media screen and (max-width: $small) {
+  button {
+    border-radius: 0.25rem;
+  }
+
+  button,
+  .select,
+  .select__selected {
+    width: 8rem;
+    height: 2rem;
+
+    font-size: 0.6875rem;
+
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .select {
+    padding: 0.375rem 0.5rem;
+
+    height: 1.2rem;
+    // line-height: 1.3rem;
+  }
+
+  .select__selected {
+    height: 1.3rem;
+  }
+
+  .select__items {
+    width: 9rem;
+
+    top: 33px;
+    right: 4px;
+
+  }
 }
 </style>
