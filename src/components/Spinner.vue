@@ -7,14 +7,6 @@
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-
-export default defineComponent({
-    name: 'Spinner'
-})
-</script>
-
 <style lang="scss">
 $size: 1.8rem;
 $ring-size: 1.6rem;

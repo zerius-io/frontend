@@ -9,21 +9,16 @@
         <Spinner v-if="minting" />
     </button>
 
-    <div v-if="connectedWallet">
-        Connected Wallet: {{ connectedWallet?.accounts[0]?.address }}
-    </div>
-    <!-- <div v-if="selectedChain">
-        Connected Chain: {{ selectedChain }}
-    </div> -->
-
     <Collection />
 </template>
   
-<script lang="ts">
-import { defineComponent, ref, computed } from 'vue'
+<script setup>
+import { ref, computed } from 'vue'
 import { ethers } from 'ethers'
 
-import store from '@/stores/store';
+import store from '@/stores/store'
+
+import Evm from '../components/evm'
 
 import Zerius from '../components/config'
 
@@ -33,66 +28,40 @@ import Collection from '../components/Collection.vue'
 
 import ABI from '@/assets/ABI.json'
 
-export default defineComponent({
-    name: 'Mint',
-    components: {
-        Carousel,
-        Spinner,
-        Collection
-    },
-    setup() {
-        const minting = ref(false);
+const minting = ref(false)
 
-        async function mintNFT() {
-            try {
-                minting.value = true;
+const connectingWallet = computed(() => store.getters.getConnectedWallet())
 
-                if (window.ethereum) {
-                    const web3 = window.ethereum
+const connectedWallet = computed(() => store.getters.getConnectedWallet())
+const selectedChain = computed(() => store.getters.getSelectedChain())
 
-                    const CHAIN = {
-                        id: 80001,
-                        token: 'MATIC',
-                        label: 'Mumbai',
-                        rpcUrl: 'https://polygon-mumbai-bor.publicnode.com',
-                        icon: 'polygon.svg'
-                    }
+const toogleWallet = computed(async () => await Evm.toggleWallet(connectingWallet, selectedChain))
 
-                    console.log(web3)
+async function mintNFT() {
+    try {
+        const contractAddress = Zerius.getContractForChain(selectedChain.value.id)
 
-                    const provider = new ethers.BrowserProvider(window.ethereum)
-                    // It will prompt user for account connections if it isnt connected
-                    const signer = await provider.getSigner();
-                    console.log("Account:", await signer.getAddress())
+        if (!window.ethereum || !connectingWallet.label || !contractAddress) return
+        const web3 = window.ethereum
+        console.log(web3)
 
-                    // const provider = new ethers.JsonRpcProvider(web3);
-                    // const contractAddress = Zerius.getContractForChain(selectedChain.id);
-                    const contractAddress = Zerius.getContractForChain(CHAIN.id);
-                    const contract = new ethers.Contract(contractAddress, ABI, signer);
+        minting.value = true
 
-                    const transaction = await contract.mint()
-                    const receipt = await transaction.wait()
+        const provider = new ethers.BrowserProvider(window.ethereum)
+        const signer = await provider.getSigner()
+        console.log("Account:", await signer.getAddress())
 
-                    console.log('Minting successful:', receipt);
+        const contract = new ethers.Contract(contractAddress, ABI, signer)
 
-                    minting.value = false;
-                } else {
-                    console.error('Ethereum provider not available');
-                }
-            } catch (error) {
-                console.error('Error minting NFT:', error);
-                minting.value = false;
-            }
-        }
+        const transaction = await contract.mint()
+        const receipt = await transaction.wait()
 
-        return {
-            minting,
-            mintNFT,
-            connectedWallet: computed(() => store.getters.getConnectedWallet()),
-            selectedChain: computed(() => store.getters.getSelectedChain()),
-        };
+        console.log('Minting successful:', receipt)
+
+        minting.value = false
+    } catch (error) {
+        console.error('Error minting NFT:', error)
+        minting.value = false
     }
-})
+}
 </script>
-  
-<style lang="scss"></style>

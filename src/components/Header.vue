@@ -1,15 +1,14 @@
 <template>
     <div class="flex header">
         <router-link to="/">
-            <img class="logo" alt="logo" :src="logoImg">
+            <img class="logo" alt="logo" :src="logoImg" />
         </router-link>
 
         <div style="display: flex;">
             <router-link to="/" :class="{ active: route.path === '/leaderboard' }" class="nav">
                 <h3>Mint</h3>
             </router-link>
-            <span to="/leaderboard" :class="{ active: route.path === '/leaderboard' }"
-                style="position: relative">
+            <span to="/leaderboard" :class="{ active: route.path === '/leaderboard' }" style="position: relative">
                 <h3>Leaderboard <span class="soon-tip">soon</span></h3>
             </span>
         </div>
@@ -18,35 +17,15 @@
     </div>
 </template>
   
-<script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
-
+<script setup>
+import { ref, onMounted } from 'vue'
 import WalletConnector from './WalletConnector.vue'
-
 import logoImg from '/img/logo.svg'
-
 import { useRoute } from 'vue-router'
 
-export default defineComponent({
-    name: 'Header-component',
-    components: {
-        WalletConnector,
-    },
-    data() {
-        return {
-            logoImg: logoImg
-        }
-    },
-    setup() {
-        const route = useRoute()
-        const logoImgSrc = ref(logoImg)
+const route = useRoute()
+const logoImgSrc = logoImg;
 
-        return {
-            route,
-            logoImg: logoImgSrc,
-        };
-    },
-})
 </script>
   
 <style lang="scss">
@@ -59,7 +38,6 @@ $small: 1050px;
     .logo {
         width: 12.80719rem;
         height: 3.0045rem;
-
         transition: .3s;
 
         &:hover {
@@ -69,7 +47,6 @@ $small: 1050px;
 
     .nav {
         margin: 0 2rem;
-
         transition: .3s;
 
         &:hover {
@@ -92,8 +69,9 @@ $small: 1050px;
         }
 
         span {
-            display: none
+            display: none;
         }
     }
 }
 </style>
+  

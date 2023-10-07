@@ -1,49 +1,39 @@
 <template>
     <div class="flex header footer">
         <a :href="lzLink" target="_blank" rel="noopener noreferrer">
-            <img class="logo" alt="lz" :src="logoLz">
+            <img class="logo" alt="lz" :src="logoLz" />
         </a>
 
         <div>
             <a :href="githubLink" target="_blank" rel="noopener noreferrer">
-                <img class="icon" alt="github" :src="iconGitHub">
+                <img class="icon" alt="github" :src="iconGitHub" />
             </a>
             <a :href="twitterLink" target="_blank" rel="noopener noreferrer">
-                <img class="icon" alt="twitter" :src="iconTwitter">
+                <img class="icon" alt="twitter" :src="iconTwitter" />
             </a>
             <a :href="telegramLink" target="_blank" rel="noopener noreferrer">
-                <img class="icon" alt="telegram" :src="iconTelegram">
+                <img class="icon" alt="telegram" :src="iconTelegram" />
             </a>
         </div>
     </div>
 </template>
   
-<script lang="ts">
-import { defineComponent } from 'vue';
-
+<script setup>
 import logoLz from '/img/footer/lz.svg'
-
 import iconGitHub from '/img/footer/github.png'
 import iconTwitter from '/img/footer/twitter.svg'
 import iconTelegram from '/img/footer/telegram.png'
 
-export default defineComponent({
-    name: 'Footer-component',
-    components: {
-    },
-    data() {
-        return {
-            logoLz,
-            iconGitHub,
-            iconTwitter,
-            iconTelegram,
-            lzLink: 'https://layerzero.network/',
-            githubLink: 'https://github.com/ifrosta',
-            twitterLink: 'https://twitter.com/',
-            telegramLink: 'https://t.me/'
-        }
-    }
-})
+const lzLink = 'https://layerzero.network/'
+const githubLink = 'https://github.com/ifrosta'
+const twitterLink = 'https://twitter.com/'
+const telegramLink = 'https://t.me/'
+
+const logoLzSrc = logoLz
+const iconGitHubSrc = iconGitHub
+const iconTwitterSrc = iconTwitter
+const iconTelegramSrc = iconTelegram;
+
 </script>
   
 <style lang="scss">
@@ -54,14 +44,11 @@ $small: 600px;
 
     .icon {
         margin: 0 1.5rem;
-
         width: 2.25rem;
         height: 2.25rem;
     }
-}
 
-@media screen and (max-width: $small) {
-    .footer {
+    @media screen and (max-width: $small) {
         flex-direction: column-reverse;
 
         .icon {

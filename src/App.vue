@@ -8,19 +8,9 @@
   <Footer />
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-
-import Header from './components/Header.vue';
-import Footer from './components/Footer.vue';
-
-export default defineComponent({
-  name: 'App',
-  components: {
-    Header,
-    Footer
-  }
-})
+<script setup>
+import Header from './components/Header.vue'
+import Footer from './components/Footer.vue'
 </script>
 
 <style lang="scss">
@@ -118,7 +108,7 @@ button,
 .icon {
   transition: transform 0.2s ease-out;
 
-  &:hover {
+  &:not(:disabled):hover {
     transform: scale(1.1);
     // background-color: var(--blue, #2C6EFF);
   }
@@ -130,8 +120,14 @@ button,
   &:disabled {
     color: #fff;
     background: var(--gray, #A1A1A9);
+
+    &:hover {
+      transform: none;
+      /* Remove hover effect when disabled */
+    }
   }
 }
+
 
 button,
 select,

@@ -1,18 +1,6 @@
-<template>
-    <!-- Leaderboard -->
-</template>
+<template></template>
   
-<script lang="ts">
-import { defineComponent } from 'vue'
-
-
-
-export default defineComponent({
-    name: 'Leaderboard',
-    components: {
-    }
-})
-</script>
+<script setup></script>
   
 <style lang="scss"></style>
   

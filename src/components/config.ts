@@ -1,4 +1,12 @@
-const chains = [
+export type ChainType = {
+    id: any,
+    token: string,
+    label: string,
+    rpcUrl: string,
+    icon?: string
+}
+
+const chains: ChainType[] = [
     {
         id: 80001,
         token: 'MATIC',
@@ -10,51 +18,58 @@ const chains = [
         id: 1,
         token: 'ETH',
         label: 'Ethereum',
-        rpcUrl: 'https://ethereum.publicnode.com',
+        rpcUrl: 'https://rpc.ankr.com/eth'
+    },
+    {
+        id: 324,
+        token: 'ETH',
+        label: 'zkSync',
+        rpcUrl: 'https://mainnet.era.zksync.io'
     },
     {
         id: 42161,
         token: 'ETH',
-        label: 'Arbitrum',
-        rpcUrl: 'https://rpc.ankr.com/arbitrum'
+        label: 'Arbitrum One',
+        rpcUrl: 'https://arb1.arbitrum.io/rpc',
+        icon: 'arbitrum.svg'
+    },
+    {
+        id: 10,
+        token: 'ETH',
+        label: 'Optimism',
+        rpcUrl: 'https://rpc.ankr.com/optimism'
     },
     {
         id: 137,
         token: 'MATIC',
         label: 'Polygon',
-        rpcUrl: 'https://polygon-bor.publicnode.com',
+        rpcUrl: 'https://rpc.ankr.com/polygon'
     },
     {
         id: 56,
         token: 'BNB',
         label: 'BNB Chain',
-        rpcUrl: 'https://bsc.meowrpc.com',
+        rpcUrl: 'https://rpc.ankr.com/bsc',
         icon: 'bnb.svg'
     },
     {
         id: 43114,
         token: 'AVAX',
         label: 'Avalanche',
-        rpcUrl: 'https://avax.meowrpc.com'
+        rpcUrl: 'https://rpc.ankr.com/avalanche'
     },
     {
         id: 8453,
         token: 'ETH',
         label: 'Base',
-        rpcUrl: 'https://base.meowrpc.com'
+        rpcUrl: 'https://mainnet.base.org'
     },
     {
-        id: 59144,
+        id: 7777777,
         token: 'ETH',
-        label: 'Linea',
-        rpcUrl: 'https://1rpc.io/linea'
-    },
-    {
-        id: 42170,
-        token: 'ETH',
-        label: 'Nova',
-        rpcUrl: 'https://arbitrum-nova.publicnode.com'
-    },
+        label: 'Zora',
+        rpcUrl: 'https://rpc.zora.energy'
+    }
 ]
 
 const lzChains = {
@@ -67,7 +82,7 @@ const lzChains = {
     84531: 10160
 }
 
-const contracts = {
+const contracts: Record<number, string> = {
     // polygon mumbai
     80001: '0x75023ffe91dd4d67D0Ce5a4b0C376aa22708f1Fb',
     // base goerli
@@ -78,6 +93,11 @@ export default class Zerius {
     static get chains() {
         return chains
     }
+
+    static getChainById(chainId: number) {
+        return this.chains.find(chain => chain.id == chainId)
+    }
+
     static get lzChains() {
         return lzChains
     }
@@ -86,7 +106,11 @@ export default class Zerius {
         return contracts
     }
 
-    static getContractForChain(chainId: number) {
+    static getAllContracts() {
+        return this.contracts
+    }
+
+    static getContractForChain(chainId: number): string {
         return this.contracts[chainId]
     }
 }
