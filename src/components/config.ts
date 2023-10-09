@@ -1,3 +1,5 @@
+const TESTNET = import.meta.env.DEV // DEV=TRUE
+
 export type ChainType = {
     id: any,
     token: string,
@@ -7,13 +9,6 @@ export type ChainType = {
 }
 
 const chains: ChainType[] = [
-    {
-        id: 80001,
-        token: 'MATIC',
-        label: 'Mumbai',
-        rpcUrl: 'https://polygon-mumbai-bor.publicnode.com',
-        icon: 'polygon.svg'
-    },
     {
         id: 1,
         token: 'ETH',
@@ -40,6 +35,12 @@ const chains: ChainType[] = [
         rpcUrl: 'https://rpc.ankr.com/optimism'
     },
     {
+        id: 8453,
+        token: 'ETH',
+        label: 'Base',
+        rpcUrl: 'https://mainnet.base.org'
+    },
+    {
         id: 137,
         token: 'MATIC',
         label: 'Polygon',
@@ -59,34 +60,59 @@ const chains: ChainType[] = [
         rpcUrl: 'https://rpc.ankr.com/avalanche'
     },
     {
-        id: 8453,
-        token: 'ETH',
-        label: 'Base',
-        rpcUrl: 'https://mainnet.base.org'
-    },
-    {
         id: 7777777,
         token: 'ETH',
         label: 'Zora',
         rpcUrl: 'https://rpc.zora.energy'
     }
 ]
+if (TESTNET) {
+    chains.unshift(
+        {
+            id: 80001,
+            token: 'MATIC',
+            label: 'Mumbai',
+            rpcUrl: 'https://polygon-mumbai-bor.publicnode.com',
+            icon: 'polygon.svg'
+        },
+        {
+            id: 84531,
+            token: 'ETH',
+            label: 'Base Goreli',
+            rpcUrl: 'https://base-goerli.publicnode.com',
+            icon: 'base.svg'
+        }
+    )
+}
 
 const lzChains = {
-    1: 101,
-    56: 102,
-    43114: 106,
-    42161: 110,
-    8453: 184,
-    80001: 10109,
-    84531: 10160
+    1: 101, // Ethereum
+    324: 165,// zkSync Era
+    42161: 110, // Arbitrum
+    10: 111,// Optimism
+    8453: 184, // Base
+    137: 109,// Polygon
+    56: 102, // BNB Chain
+    43114: 106, // Avalanche
+    7777777: 195, // Zora
+    // Testnets
+    80001: 10109, // Polygon Mumbai
+    84531: 10160 // Base Goerli
 }
 
 const contracts: Record<number, string> = {
-    // polygon mumbai
-    80001: '0x75023ffe91dd4d67D0Ce5a4b0C376aa22708f1Fb',
-    // base goerli
-    84531: '0x23e196CC4652bc272F80c04362a30b3db87F2cB9'
+    // Ethereum
+    // zkSync Era
+    // Arbitrum
+    // Optimism
+    // Base
+    // Polygon
+    // BNB Chain
+    // Avalanche
+    // Zora
+    // Testnets
+    80001: '0x75023ffe91dd4d67D0Ce5a4b0C376aa22708f1Fb', // Polygon Mumbai
+    84531: '0x23e196CC4652bc272F80c04362a30b3db87F2cB9'  // Base Goerli
 }
 
 export default class Zerius {

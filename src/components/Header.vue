@@ -6,7 +6,7 @@
 
         <div style="display: flex;">
             <router-link to="/" :class="{ active: route.path === '/leaderboard' }" class="nav">
-                <h3>Mint</h3>
+                <h3>Mint & Bridge</h3>
             </router-link>
             <span to="/leaderboard" :class="{ active: route.path === '/leaderboard' }" style="position: relative">
                 <h3>Leaderboard <span class="soon-tip">soon</span></h3>

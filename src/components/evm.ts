@@ -1,9 +1,11 @@
-import store from '@/stores/store'
-
-import { useOnboard } from '@web3-onboard/vue'
 import { Ref } from 'vue'
+import { ethers } from 'ethers'
+import { useOnboard } from '@web3-onboard/vue'
 
-import { ChainType } from './config'
+import store from '@/store'
+import Zerius, { ChainType } from './config'
+
+import ABI from '@/assets/ABI.json'
 
 export default class Evm {
     static get connectedWallet() {
@@ -22,9 +24,6 @@ export default class Evm {
             disconnectConnectedWallet
         } = useOnboard()
 
-        // const connectingWallet = store.getters.getConnectedWallet()
-        // const selectedChain = store.getters.getSelectedChain()
-
         console.log(connectedWallet)
         console.log(selectedChain)
 
@@ -32,7 +31,7 @@ export default class Evm {
             console.log('Disconnecting wallet...');
             await disconnectConnectedWallet()
 
-            store.mutations.setConnectedWallet(undefined)
+            store.commit('wallet/setConnectedWallet', undefined)
         } else {
             console.log('Connecting wallet...');
             connectingWallet.value = true
@@ -44,7 +43,7 @@ export default class Evm {
                 await this.switchChain(selectedChain)
 
                 if (!this.isWalletConnected) return
-                store.mutations.setConnectedWallet(connectedWallet.value)
+                store.commit('wallet/setConnectedWallet', connectedWallet.value)
             } catch (error) {
                 console.error('Error connecting wallet:', error)
             } finally {
@@ -67,7 +66,7 @@ export default class Evm {
 
         if (this.isWalletConnected && selectedChain) {
             setChain({ wallet: this.connectedWallet.label, chainId: selectedChain.id })
-            store.mutations.setSelectedChain(selectedChain)
+            store.commit('wallet/setSelectedChain', selectedChain)
         }
     }
 
@@ -80,5 +79,35 @@ export default class Evm {
 
     static toHex(d: number) {
         return ('0' + (Number(d).toString(16))).slice(-2).toUpperCase()
+    }
+
+    static async mint() {
+        try {
+            const selectedChain = store.getters['wallet/selectedChain']
+            const contractAddress = Zerius.getContractForChain(selectedChain.id)
+
+            if (!window.ethereum || !this.connectedWallet.label || !contractAddress) return false
+            const web3 = window.ethereum
+            console.log(web3)
+
+            const provider = new ethers.BrowserProvider(window.ethereum)
+            const signer = await provider.getSigner()
+
+            const contract = new ethers.Contract(contractAddress, ABI, signer)
+
+            const transaction = await contract.mint()
+            const receipt = await transaction.wait()
+
+            console.log('Minting successful:', receipt)
+
+            return receipt.status as boolean
+        } catch (error) {
+            console.error('Error minting NFT:', error)
+            return false
+        }
+    }
+
+    static async bridge() {
+
     }
 }

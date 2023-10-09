@@ -1,16 +1,10 @@
-<template>
-    <div style="margin: 2.8rem auto; margin-top: 3.5rem">
-        <h1>Your collection{{ collection.length ? '' : ' will be here' }}</h1>
-        <Collectable :items="collection" />
-    </div>
-</template>
-  
 <script setup lang="ts">
-import Collectable from './Collectable.vue'
 import { ref, onMounted, computed, watch } from 'vue'
 import { ethers } from 'ethers'
 
-import store from '@/stores/store'
+import store from '@/store'
+
+import Collectable from './Collectable.vue'
 
 import Zerius from './config'
 import Evm from './evm'
@@ -19,7 +13,7 @@ import ABI from '@/assets/ABI.json'
 
 const collection = ref([])
 
-const connectedWallet = computed(() => store.getters.getConnectedWallet())
+const connectedWallet = computed(() => store.getters['wallet/connectedWallet'])
 
 onMounted(async () => {
     await fetchCollection()
@@ -83,10 +77,19 @@ const fetchCollection = async () => {
     }
 }
 </script>
-  
+
+<template>
+    <div style="margin: 2.8rem auto; margin-top: 3.5rem">
+        <!-- <h1>Your collection{{ collection.length ? '' : ' will be here' }}</h1> -->
+
+        <div class="flex collectables">
+            <Collectable v-for="item in collection" :key="item.id" :item="item" :clickable="true" />
+        </div>
+    </div>
+</template>
+
 <style lang="scss">
 h1 {
     margin: 2rem auto;
 }
 </style>
-  

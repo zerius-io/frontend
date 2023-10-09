@@ -19,7 +19,7 @@ import { init } from '@web3-onboard/vue'
 import { useOnboard } from '@web3-onboard/vue'
 import injectedModule from '@web3-onboard/injected-wallets'
 
-import store from '@/stores/store'
+import store from '@/store'
 
 import Evm from './evm'
 import Zerius from './config'
@@ -40,18 +40,17 @@ const {
     setChain
 } = useOnboard()
 
-const selectedChainRef = ref(null)
-// store.mutations.setSelectedChain(selectedChainRef?.value?.selected || null)
+const chains = Zerius.chains
 
 const connectingWallet = ref(false)
-// store.mutations.setConnectingWallet(connectingWallet)
+const selectedChain = ref(null)
+const selectedChainRef = ref(null)
 
 const toggleWallet = async () => Evm.toggleWallet(connectingWallet, selectedChainRef.value.selected)
+
 const setSwitchChain = () => Evm.switchChain(selectedChainRef.value.selected)
 const setChainById = () => Evm.setChainById(selectedChainRef.value.selected)
-const formatAddress = (address) => Evm.formatAddress(address)
 
-const chains = Zerius.chains
-const selectedChain = ref(null)
+const formatAddress = (address) => Evm.formatAddress(address)
 
 </script>

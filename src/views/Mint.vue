@@ -1,9 +1,9 @@
 <template>
-    <h1 style="max-width: 60%;">Mint NFTs and collect it in one place via LayerZero technologies</h1>
+    <h1 style="max-width: 60%;">Mint NFTs and send them via LayerZero</h1>
 
     <Carousel />
 
-    <button @click="mintNFT" :disabled="minting" class="button__full-uppercase"
+    <button @click="mint" :disabled="minting" class="button__full-uppercase"
         style="margin-top: 1rem; width: 15rem; height: 3rem;">
         {{ minting ? 'minting' : 'mint' }}
         <Spinner v-if="minting" />
@@ -14,9 +14,9 @@
   
 <script setup>
 import { ref, computed } from 'vue'
-import { ethers } from 'ethers'
+import { ModalsContainer, useModal } from 'vue-final-modal'
 
-import store from '@/stores/store'
+import store from '@/store'
 
 import Evm from '../components/evm'
 
@@ -25,43 +25,33 @@ import Zerius from '../components/config'
 import Carousel from '../components/Carousel.vue'
 import Spinner from '../components/Spinner.vue'
 import Collection from '../components/Collection.vue'
-
-import ABI from '@/assets/ABI.json'
+import Modal from '../components/Modal.vue'
 
 const minting = ref(false)
 
-const connectingWallet = computed(() => store.getters.getConnectedWallet())
+// const connectedWallet = computed(() => store.getters['wallet/connectedWallet'])
+const selectedChain = computed(() => store.getters['wallet/selectedChain'])
 
-const connectedWallet = computed(() => store.getters.getConnectedWallet())
-const selectedChain = computed(() => store.getters.getSelectedChain())
+const toogleWallet = computed(async () => await Evm.toggleWallet(connectedWallet, selectedChain))
 
-const toogleWallet = computed(async () => await Evm.toggleWallet(connectingWallet, selectedChain))
+const { open, close } = useModal({
+    component: Modal,
+    attrs: {
+        title: 'Yay, congratulations!',
+        // collectable: props.item,
+        onConfirm() {
+            mint()
+        },
+    },
+    slots: {
+        // default: '<p>The content of the modal</p>',
+    },
+})
 
-async function mintNFT() {
-    try {
-        const contractAddress = Zerius.getContractForChain(selectedChain.value.id)
+async function mint() {
+    minting.value = true
 
-        if (!window.ethereum || !connectingWallet.label || !contractAddress) return
-        const web3 = window.ethereum
-        console.log(web3)
-
-        minting.value = true
-
-        const provider = new ethers.BrowserProvider(window.ethereum)
-        const signer = await provider.getSigner()
-        console.log("Account:", await signer.getAddress())
-
-        const contract = new ethers.Contract(contractAddress, ABI, signer)
-
-        const transaction = await contract.mint()
-        const receipt = await transaction.wait()
-
-        console.log('Minting successful:', receipt)
-
-        minting.value = false
-    } catch (error) {
-        console.error('Error minting NFT:', error)
-        minting.value = false
-    }
+    minting.value = await Evm.mint()
+    if (minting.value) open()
 }
 </script>

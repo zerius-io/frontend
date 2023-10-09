@@ -1,38 +1,34 @@
-<template>
-    <div class="select" @blur="open = false" :class="{ open: open }">
-        <div class="select__selected" :class="{ open: open }" @click="open = !open">
-            <template v-if="selected">
-                <img :src="getImageSrc(selected)" class="select__icon" />
-            </template>
-            {{ selected.label }}
-        </div>
-
-        <div class="select__items" :class="{ select__hide: !open }">
-            <div v-for="(option, i) of filteredOptions" :key="i" @click="selectOption(option)" class="select__items-item">
-                <img :src="getImageSrc(option)" class="select__icon" />
-                {{ option.label }}
-            </div>
-        </div>
-    </div>
-</template>
-  
 <script lang="ts">
-import { ref, computed, toRaw } from 'vue'
+import { ref, computed, onMounted, watchEffect } from 'vue'
 
 export default {
     props: {
         options: {
             type: Array,
             required: true,
+        },
+        initialChainId: {
+            type: String,
+            default: null
         }
     },
     setup(props, { emit }) {
         const open = ref(false)
-
+        const selectRef = ref(null)
         const selected = ref(props.options[0] || null)
+
         const filteredOptions = computed(() => {
-            return props.options.filter((option) => option !== selected.value)
+            return props.options.filter((option) => option.id !== selected.value.id)
         })
+
+        const selectRandomChain = () => {
+            const availableOptions = props.initialChainId !== null
+                ? props.options.filter(option => option.id != props.initialChainId)
+                : props.options
+
+            const randomIndex = Math.floor(Math.random() * availableOptions.length)
+            return availableOptions[randomIndex]
+        }
 
         const selectOption = (option) => {
             selected.value = option
@@ -46,16 +42,55 @@ export default {
             return `./src/assets/img/chains/${chain.icon ? chain.icon : `${chain.label.toLowerCase()}.svg`}`
         }
 
+        onMounted(() => {
+            if (props.initialChainId !== null) {
+                selected.value = selectRandomChain()
+
+            }
+        })
+
+        watchEffect(() => {
+            const handleClickOutside = (event) => {
+                if (selectRef.value && !selectRef.value.contains(event.target)) {
+                    open.value = false
+                }
+            }
+
+            document.addEventListener('click', handleClickOutside)
+            
+            return () => {
+                document.removeEventListener('click', handleClickOutside)
+            }
+        })
+
         return {
             selected,
             open,
             filteredOptions,
             selectOption,
             getImageSrc,
+            selectRef
         }
     },
 }
 </script>
+
+<template>
+    <div class="select" @blur="open = false" :class="{ open: open }" ref="selectRef">
+        <div class="select__selected" :class="{ open: open }" @click="open = !open">
+            <template v-if="selected">
+                <img :src="getImageSrc(selected)" class="select__icon" />
+            </template>
+            {{ selected.label }}
+        </div>
+        <div class="select__items" :class="{ select__hide: !open }">
+            <div v-for="(option, i) of filteredOptions" :key="i" @click="selectOption(option)" class="select__items-item">
+                <img :src="getImageSrc(option)" class="select__icon" />
+                {{ option.label }}
+            </div>
+        </div>
+    </div>
+</template>
 
 <style lang="scss">
 .select {

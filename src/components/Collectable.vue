@@ -1,22 +1,26 @@
-<template>
-    <div class="flex collectables">
-        <div v-for="item in items" :key="item.id" class="collectable-item">
-            <img :src="itemImageSrc(item)" class="collectable-item-img" />
-            <div class="collectable-item-info flex">
-                <img :src="getChainIconSrc(item.chainId)" class="collectable-item-info-chain" />
-                <div class="collectable-item-info-text">zerius #{{ item.id }}</div>
-                <img :src="arrow" />
-            </div>
-        </div>
-    </div>
-</template>
-  
 <script setup lang="ts">
+import { ModalsContainer, useModal } from 'vue-final-modal'
+import Modal from './Modal.vue'
+
 import Zerius from './config'
 
 import arrow from '/img/arrow.svg'
 
-const props = defineProps(['items'])
+const props = defineProps(['item', 'clickable'])
+
+const { open, close } = useModal({
+    component: Modal,
+    attrs: {
+        title: 'Bridge',
+        collectable: props.item,
+        onConfirm() {
+            // close()
+        },
+    },
+    slots: {
+        // default: '<p>The content of the modal</p>',
+    },
+})
 
 const itemImageSrc = (item) => {
     const url = `./src/assets/img/carousel/test.jpg` //`https://example.com/path/to/collectable/images/${item.chainId}/${item.uri}`
@@ -32,6 +36,19 @@ const getChainIconSrc = (chainId: number) => {
     return `./src/assets/img/chains/${chain?.icon ? chain.icon : `${chain.label.toLowerCase()}.svg`}`
 }
 </script>
+
+<template>
+    <div class="collectable-item" v-on="clickable ? { click: open } : {}">
+        <img :src="itemImageSrc(item)" class="collectable-item-img" />
+        <div class="collectable-item-info flex">
+            <img :src="getChainIconSrc(item.chainId)" class="collectable-item-info-chain" />
+            <div class="collectable-item-info-text">minis #{{ item.id }}</div>
+            <img v-if="clickable" :src="arrow" />
+        </div>
+
+        <ModalsContainer />
+    </div>
+</template>
   
 <style lang="scss">
 .collectables {
