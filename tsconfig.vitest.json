@@ -3,6 +3,7 @@
   "exclude": [],
   "compilerOptions": {
     "module": "ESNext",
+    "moduleResolution": "nodenext",
     "composite": true,
     "lib": [],
     "types": [

@@ -19,7 +19,6 @@ import { ModalsContainer, useModal } from 'vue-final-modal'
 import store from '@/store'
 
 import Evm from '../components/evm'
-
 import Zerius from '../components/config'
 
 import Carousel from '../components/Carousel.vue'

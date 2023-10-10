@@ -1,11 +1,11 @@
 import { createApp } from 'vue'
 
-import { createVfm } from 'vue-final-modal'
-import Toast, { POSITION } from "vue-toastification"
-
 import App from './App.vue'
 import router from './router'
 import store from './store'
+
+import { createVfm } from 'vue-final-modal'
+import Toast from "vue-toastification"
 
 import 'vue-final-modal/style.css'
 import "vue-toastification/dist/index.css"
@@ -17,9 +17,6 @@ const vfm = createVfm()
 app.use(router)
 app.use(store)
 app.use(vfm)
-app.use(Toast, {
-    position: POSITION.TOP_RIGHT,
-    timeout: 3000
-})
+app.use(Toast, { timeout: 3000 })
 
 app.mount('#app')
