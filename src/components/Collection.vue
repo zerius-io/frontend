@@ -36,4 +36,8 @@ const fetchCollection = async () => {
 h1 {
     margin: 2rem auto;
 }
+
+.collectables {
+    flex-wrap: wrap;
+}
 </style>

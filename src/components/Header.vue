@@ -1,7 +1,10 @@
 <template>
     <div class="flex header">
         <router-link to="/">
-            <img class="logo" alt="logo" :src="logoImg" />
+            <div class=flex logo>
+                <img class="logo-icon" alt="logo" :src="logoImg" />
+                <img class="logo-text" alt="logo" :src="logoTextImg" />
+            </div>
         </router-link>
 
         <div style="display: flex;">
@@ -19,12 +22,14 @@
   
 <script setup>
 import { ref, onMounted } from 'vue'
-import WalletConnector from './WalletConnector.vue'
-import logoImg from '/img/logo.svg'
 import { useRoute } from 'vue-router'
 
+import WalletConnector from './WalletConnector.vue'
+
+import logoImg from '/img/logo.svg'
+import logoTextImg from '/img/logo_text.svg'
+
 const route = useRoute()
-const logoImgSrc = logoImg;
 
 </script>
   
@@ -35,13 +40,23 @@ $small: 1050px;
 .header {
     margin: 1.5rem 0;
 
+    flex-wrap: wrap;
+
     .logo {
-        width: 12.80719rem;
-        height: 3.0045rem;
         transition: .3s;
 
         &:hover {
             transform: scale(1.1);
+        }
+
+        &-icon {
+            width: 3.75rem;
+            height: 3.875rem;
+        }
+
+        &-text {
+            // width: 9.5625rem;
+            // height: 2.4375rem;
         }
     }
 
@@ -55,7 +70,7 @@ $small: 1050px;
     }
 
     @media screen and (max-width: $medium) {
-        padding: 0 4rem;
+        padding: 0 1rem;
     }
 
     @media screen and (max-width: $small) {

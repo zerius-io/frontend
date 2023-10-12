@@ -4,6 +4,6 @@ import wallet from './wallet'
 
 export default createStore({
     modules: {
-        wallet,
+        wallet
     },
 })

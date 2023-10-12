@@ -2,7 +2,7 @@
     <div style="display: flex; justify-content: space-between;">
         <custom-select ref="selectedChainRef" :options="chains" v-model="selectedChain" @change="setChainById" />
 
-        <button type="button" @click="toggleWallet" :class="connectedWallet ? 'button' : 'button__full'">
+        <button type="button" @click="toggleWallet" ref="walletConnection" :class="connectedWallet ? 'button' : 'button__full'">
             {{ connectedWallet ? formatAddress(connectedWallet?.accounts[0]?.address) : connectingWallet ?
                 'Connecting...' : 'Connect wallet'
             }}
@@ -43,6 +43,8 @@ const {
 const chains = Zerius.chains
 
 const connectingWallet = ref(false)
+const walletConnectionRef = ref(null)
+
 const selectedChain = ref(null)
 const selectedChainRef = ref(null)
 

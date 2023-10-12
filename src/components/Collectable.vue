@@ -13,17 +13,15 @@ const { open, close } = useModal({
     attrs: {
         title: 'Bridge',
         collectable: props.item,
-        onConfirm() {
-            // close()
-        },
     },
-    slots: {
-        // default: '<p>The content of the modal</p>',
-    },
+    slots: {},
 })
 
 const itemImageSrc = (item) => {
-    const url = `./src/assets/img/carousel/test.jpg` //`https://example.com/path/to/collectable/images/${item.chainId}/${item.uri}`
+    const rnd = [6, 115, 265, 94]
+    const img = rnd[Math.floor(Math.random() * rnd.length)]
+
+    const url = `./src/assets/img/carousel/${img}.png` //`https://example.com/path/to/collectable/images/${item.chainId}/${item.uri}`
 
     // const response = await fetch(url)
     // const blob = await response.blob()
@@ -97,6 +95,11 @@ const getChainIconSrc = (chainId: number) => {
 
         border-radius: 1.5rem 1.5rem 0rem 0rem;
         object-fit: cover;
+    }
+
+    @media screen and (max-width: 1200) {
+        margin: .5rem;
+        width: 10rem;
     }
 }
 </style>

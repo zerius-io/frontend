@@ -2,6 +2,10 @@
 import { ref } from 'vue'
 
 import { VueFinalModal } from 'vue-final-modal'
+import { useToast } from 'vue-toastification'
+
+import ok_img from '/img/ok.svg'
+import error_img from '/img/error.svg'
 
 import Evm from './evm'
 import Zerius from './config'
@@ -9,7 +13,10 @@ import Zerius from './config'
 import CustomSelect from "./Select.vue"
 import Collectable from './Collectable.vue'
 
-defineProps<{
+import Spinner from '../components/Spinner.vue'
+import Toast from '../components/Toast.vue'
+
+const { title, collectable } = defineProps<{
     title?: string,
     collectable?: any
 }>()
@@ -21,27 +28,74 @@ const emit = defineEmits<{
 const selectedChain = ref(null)
 const selectedChainRef = ref(null)
 
-const setChainById = () => Evm.setChainById(selectedChainRef.value.selected)
+const bridging = ref()
 
+const res = ref(null)
+
+// const setChainById = () => Evm.setChainById(selectedChainRef.value.selected)
+
+const toast = useToast()
+const showToast = (info, explorer = null) => toast({
+    component: Toast,
+    props: {
+        info,
+        explorer
+    }
+})
+
+async function bridge() {
+    bridging.value = true
+    showToast("Bridging..")
+
+    res.value = await Evm.bridge(
+        collectable.id,
+        collectable.chainId,
+        selectedChainRef.value?.selected?.id)
+
+    bridging.value = false
+    showToast(res.msg, { id: selectedChain, hash: res.receipt?.hash })
+
+    if (res.value) {
+
+    }
+}
 </script>
 
 <template>
     <VueFinalModal class="modal flex" content-class="modal-content" overlay-transition="vfm-fade"
         content-transition="vfm-fade">
 
-        <h1>{{ title }}</h1>
+        <h1>{{ !res ? title : res ? 'Success!' : 'Something went wrong!' }}</h1>
 
         <custom-select v-if="title === 'Bridge'" ref="selectedChainRef" :options="Zerius.chains" v-model="selectedChain"
-            @change="setChainById" :initialChainId="collectable.chainId" />
+            :initialChainId="collectable.chainId" />
 
         <slot />
 
-        <Collectable :item="collectable" :clickable="false" />
+        <div v-if="res !== null">
+            <img class="status" alt="status" :src="res ? ok_img : error_img" />
 
-        <button v-if="title === 'Bridge'" class="button__full">
-            Send
-        </button>
+            <div v-if="res">
+                Mint again
+                <!-- <button v-if="title === 'Bridge'" @click="bridge" :disabled="bridging" class="button__full">
+                    {{ bridging ? 'Bridging' : 'Bridge' }}
+                    <Spinner v-if="bridging" />
+                </button> -->
+            </div>
 
+            <button v-if="title === 'Bridge'" @click="bridge" :disabled="bridging" class="button__full">
+                {{ bridging ? 'Bridging' : 'Bridge' }} {{ res && !bridging ? '' : 'again' }}
+                <Spinner v-if="bridging" />
+            </button>
+        </div>
+        <div v-else>
+            <Collectable :item="collectable" :clickable="false" />
+
+            <button v-if="title === 'Bridge'" @click="bridge" :disabled="bridging" class="button__full">
+                {{ bridging ? 'Bridging' : 'Bridge' }}
+                <Spinner v-if="bridging" />
+            </button>
+        </div>
         <!-- <button @click="emit('confirm')" class="button_full">
             Confirm
         </button> -->
@@ -75,6 +129,13 @@ const setChainById = () => Evm.setChainById(selectedChainRef.value.selected)
             font-weight: 600;
 
             line-height: 80%;
+        }
+
+        .status {
+            margin: 1rem;
+
+            width: 12.6875rem;
+            height: 12.6875rem;
         }
 
         button {
