@@ -23,37 +23,51 @@ export default class Evm {
         return !!this.connectedWallet?.label
     }
 
-    static async toggleWallet(connectingWallet: Ref, selectedChain: ChainType) {
+    static async toggleWallet(connectingWallet: Ref = null, selectedChain: ChainType = null) {
         const {
             connectWallet,
             connectedWallet,
             disconnectConnectedWallet
         } = useOnboard()
 
-        console.log(connectedWallet)
-        console.log(selectedChain)
+        if (Zerius.isDEV) {
+            console.log('WALLET CONNECT', connectedWallet, selectedChain)
+        }
 
         if (this.isWalletConnected) {
-            console.log('Disconnecting wallet...');
+            if (Zerius.isDEV) {
+                console.log('Disconnecting wallet...')
+            }
+
             await disconnectConnectedWallet()
 
             store.commit('wallet/setConnectedWallet', undefined)
         } else {
-            console.log('Connecting wallet...');
-            connectingWallet.value = true
+            if (Zerius.isDEV) {
+                console.log('Connecting wallet..');
+            }
+
+            if (connectingWallet) {
+                connectingWallet.value = true
+            }
 
             try {
                 await connectWallet()
-                console.log('Wallet connected', connectedWallet)
 
-                await this.switchChain(selectedChain)
+                if (selectedChain) {
+                    await this.switchChain(selectedChain)
+                }
 
                 if (!this.isWalletConnected) return
                 store.commit('wallet/setConnectedWallet', connectedWallet.value)
             } catch (error) {
-                console.error('Error connecting wallet:', error)
+                if (Zerius.isDEV) {
+                    console.error('Error connecting wallet:', error)
+                }
             } finally {
-                connectingWallet.value = false
+                if (connectingWallet) {
+                    connectingWallet.value = false
+                }
             }
         }
     }
@@ -92,28 +106,42 @@ export default class Evm {
             const selectedChain = store.getters['wallet/selectedChain']
             const contractAddress = Zerius.getContractForChain(selectedChain.id)
 
-            if (!this.isWalletConnected) {
-                // this.toggleWallet()
-            }
-
             if (!window.ethereum || !this.isWalletConnected || !contractAddress) {
+                if (Zerius.isDEV) {
+                    console.log(!window.ethereum, !this.isWalletConnected, !contractAddress)
+                }
+
                 return {
                     result: false,
-                    msg: 'Error',
+                    msg: 'Something went wrong :(',
                 }
             }
-            const web3 = window.ethereum
 
+            const web3 = window.ethereum
             const provider = new ethers.BrowserProvider(web3)
+
             const signer = await provider.getSigner()
+            const sender = await signer.getAddress()
+            // const nonce = await signer.getNonce(sender)
 
             const contract = new ethers.Contract(contractAddress, ABI, signer)
+            const mintFee = await contract.mintFee()
 
-            const transaction = await contract.mint()
-            const receipt = await transaction.wait()
+            let options = { value: BigInt(mintFee), gasLimit: BigInt(0) }
+
+            const gasLimit = await contract.mint.estimateGas(options)
+            options.gasLimit = gasLimit
+
+            const txResponse = await contract.mint(options)
 
             if (Zerius.isDEV) {
-                console.log('Minting successful:', receipt)
+                console.log('Transaction sent:', txResponse)
+            }
+
+            const receipt = await txResponse.wait()
+
+            if (Zerius.isDEV) {
+                console.log('Mint confirmed:', receipt)
             }
 
             return {
@@ -160,7 +188,7 @@ export default class Evm {
 
                 return {
                     result: false,
-                    msg: 'Error',
+                    msg: 'Something went wrong :(',
                 }
             }
             //////////// INIT ////////////
@@ -169,6 +197,7 @@ export default class Evm {
 
             const signer = await provider.getSigner()
             const sender = await signer.getAddress()
+
             const _toAddress = ethers.hexlify(ethers.toUtf8Bytes(sender))
 
             const contract = new ethers.Contract(contractAddress, ABI, signer)
@@ -181,16 +210,6 @@ export default class Evm {
             )
             // console.log('adapterParams', adapterParams)
 
-            // console.log('MIN_GAS_TO_TRANSFER', MIN_GAS_TO_TRANSFER)
-            // console.log('BRIDGE_FEE', BRIDGE_FEE)
-            // console.log(
-            //     LZ_VERSION,
-            //     MIN_GAS_TO_TRANSFER,
-            //     tokenId,
-            //     _toAddress,
-            //     _dstChainId
-            // )
-            // console.log(abiCoder.encode(['uint16', 'uint256'], [LZ_VERSION, MIN_GAS_TO_TRANSFER]))
             const { nativeFee } = await contract.estimateSendFee(
                 _dstChainId,
                 _toAddress,
@@ -214,6 +233,24 @@ export default class Evm {
             }
 
             //////////// BRIDGE ////////////
+            let bridgeOptions = {
+                value: TOTAL_COST,
+                gasLimit: ethers.BigNumber.from(0)
+            }
+
+            const estimatedGasLimit = await contract.estimateGas.sendFrom(
+                sender,
+                _dstChainId,
+                _toAddress,
+                tokenId,
+                sender,
+                ethers.ZeroAddress,
+                adapterParams,
+                bridgeOptions
+            )
+            bridgeOptions.gasLimit = estimatedGasLimit
+
+            // Sending the transaction
             const transaction = await contract.sendFrom(
                 sender,
                 _dstChainId,
@@ -222,7 +259,7 @@ export default class Evm {
                 sender,
                 ethers.ZeroAddress,
                 adapterParams,
-                { value: TOTAL_COST }
+                bridgeOptions
             )
 
             const receipt = await transaction.wait()
@@ -300,9 +337,9 @@ export default class Evm {
             const contract = new ethers.Contract(contractAddress, ABI, signer)
 
             const id = Number(await contract.tokenOfOwnerByIndex(owner, tokenId))
-            const uri = await contract.tokenURI(id)
+            // const uri = await contract.tokenURI(id)
 
-            return uri
+            return Zerius.getIpfsUri(id)
         } catch (error) {
             if (Zerius.isDEV) {
                 console.error('Error fetching Uri:', error)
@@ -337,7 +374,7 @@ export default class Evm {
             const ITEMS = []
 
             for (const [chainId, contractAddress] of Object.entries(Zerius.contracts)) {
-                if (Zerius.isDEV) console.log(chainId, contractAddress)
+                // if (Zerius.isDEV) console.log(chainId, contractAddress)
 
                 // const provider = new ethers.JsonRpcProvider(Zerius.getChainById(chainId).rpcUrl)
                 // const signer = await provider.getSigner()
@@ -351,22 +388,20 @@ export default class Evm {
                     for (let i = 0; i < tokensCount; i++) {
                         const fetchFunction = async () => {
                             const id = Number(await contract.tokenOfOwnerByIndex(owner, i))
-                            const uri = await contract.tokenURI(id)
+                            // const uri = await contract.tokenURI(id)
+                            const uri = Zerius.getIpfsUri(id)
+
                             return { chainId, id, uri }
                         }
 
-                        try {
-                            const result = await fetchWithRetry(fetchFunction, 3, 1000)
-                            chainItems.push(result);
-                        } catch (error) {
-                            // console.error('Error fetching item:', error)
-                        }
+                        const result = await fetchWithRetry(fetchFunction, 3, 1000)
+                        chainItems.push(result);
                     }
 
                     if (chainItems.length) ITEMS.push(chainItems)
                 } catch (error) {
                     if (Zerius.isDEV) {
-                        console.error('Error fetch:', chainId, error)
+                        // console.error('Error fetch:', chainId, error)
                     }
                 }
             }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import { ModalsContainer, useModal } from 'vue-final-modal'
 import Modal from './Modal.vue'
 
@@ -17,27 +18,16 @@ const { open, close } = useModal({
     slots: {},
 })
 
-const itemImageSrc = (item) => {
-    const rnd = [6, 115, 265, 94]
-    const img = rnd[Math.floor(Math.random() * rnd.length)]
-
-    const url = `./src/assets/img/carousel/${img}.png` //`https://example.com/path/to/collectable/images/${item.chainId}/${item.uri}`
-
-    // const response = await fetch(url)
-    // const blob = await response.blob()
-    // return URL.createObjectURL(blob)
-    return url
-}
-
 const getChainIconSrc = (chainId: number) => {
     const chain = Zerius.getChainById(chainId)
     return `./src/assets/img/chains/${chain?.icon ? chain.icon : `${chain.label.toLowerCase()}.svg`}`
 }
+
 </script>
 
 <template>
     <div class="collectable-item" v-on="clickable ? { click: open } : {}">
-        <img :src="itemImageSrc(item)" class="collectable-item-img" />
+        <img :src="item.uri" class="collectable-item-img" />
         <div class="collectable-item-info flex">
             <img :src="getChainIconSrc(item.chainId)" class="collectable-item-info-chain" />
             <div class="collectable-item-info-text">minis #{{ item.id }}</div>

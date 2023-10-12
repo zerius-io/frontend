@@ -1,7 +1,7 @@
 <template>
     <div class="carousel__wrapper">
         <Carousel :itemsToShow="5" :wrapAround="true" :transition="500" :disable-user-scroll="true" ref="carouselRef"
-            :snapAlign="center" :breakpoints="{
+            snapAlign="center" :breakpoints="{
                 // 600: { itemsToShow: 1 },
                 // 900: { itemsToShow: 4 },
                 // 1200: { itemsToShow: 3 },
@@ -159,24 +159,27 @@ $medium: 1500px;
     transition: 0.5s;
 }
 
+$degreeFront: 36deg;
+$degreeBack: 46deg;
+
 .carousel__slide {
     opacity: 1;
-    transform: rotateY(58deg) scale(0.8);
+    transform: rotateY($degreeBack) scale(0.8);
 }
 
 .carousel__slide--active~.carousel__slide {
     opacity: 1;
-    transform: rotateY(-58deg) scale(0.8);
+    transform: rotateY(-$degreeBack) scale(0.8);
 }
 
 .carousel__slide--prev {
     opacity: 1;
-    transform: rotateY(46deg) scale(0.85);
+    transform: rotateY($degreeFront) scale(0.85);
 }
 
 .carousel__slide--next {
     opacity: 1;
-    transform: rotateY(-46deg) scale(0.85) !important;
+    transform: rotateY(-$degreeFront) scale(0.85) !important;
 }
 
 .carousel__slide--active {

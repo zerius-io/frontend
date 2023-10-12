@@ -20,7 +20,6 @@ import { useToast } from 'vue-toastification'
 import store from '@/store'
 
 import Evm from '../components/evm'
-import Zerius from '../components/config'
 
 import Carousel from '../components/Carousel.vue'
 import Spinner from '../components/Spinner.vue'
@@ -29,7 +28,7 @@ import Modal from '../components/Modal.vue'
 import Toast from '../components/Toast.vue'
 
 const minting = ref(false)
-// const connectedWallet = computed(() => store.getters['wallet/connectedWallet'])
+const connectedWallet = computed(() => store.getters['wallet/connectedWallet'])
 const selectedChain = computed(() => store.getters['wallet/selectedChain'])
 
 let item = null

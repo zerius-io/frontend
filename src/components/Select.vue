@@ -84,7 +84,7 @@ export default {
             {{ selected.label }}
         </div>
         <div class="select__items" :class="{ select__hide: !open }">
-            <div v-for="(option, i) of filteredOptions" :key="i" @click="selectOption(option)" class="select__items-item">
+            <div v-for="(option, i) of options" :key="i" @click="selectOption(option)" class="select__items-item">
                 <img :src="getImageSrc(option)" class="select__icon" />
                 {{ option.label }}
             </div>

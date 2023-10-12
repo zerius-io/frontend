@@ -27,7 +27,7 @@ import { useRoute } from 'vue-router'
 import WalletConnector from './WalletConnector.vue'
 
 import logoImg from '/img/logo.svg'
-import logoTextImg from '/img/logo_text.svg'
+import logoTextImg from '/img/logo_text.png'
 
 const route = useRoute()
 
@@ -55,8 +55,9 @@ $small: 1050px;
         }
 
         &-text {
-            // width: 9.5625rem;
-            // height: 2.4375rem;
+            margin: 0 .5rem;
+            width: 9rem;
+            height: auto;
         }
     }
 
@@ -70,10 +71,12 @@ $small: 1050px;
     }
 
     @media screen and (max-width: $medium) {
-        padding: 0 1rem;
+        padding: 0 4rem;
     }
 
     @media screen and (max-width: $small) {
+        padding: 0 1rem;
+
         .logo {
             width: 7rem;
             height: 2rem;

@@ -21,13 +21,15 @@ const url = computed(() => Zerius.getExplorerTxUrl(explorer))
 
 <style lang="scss">
 .toast {
-    min-width: 15rem;
-    width: 16rem;
+    min-width: 13rem;
+    width: 13rem;
 
     min-height: 2rem;
     height: auto;
 
     padding: 0;
+
+    text-align: left;
 
     border-radius: 0.75rem;
     background: var(--light, #FBFBFB);

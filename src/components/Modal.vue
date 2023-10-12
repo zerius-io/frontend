@@ -65,7 +65,7 @@ async function bridge() {
     <VueFinalModal class="modal flex" content-class="modal-content" overlay-transition="vfm-fade"
         content-transition="vfm-fade">
 
-        <h1>{{ !res ? title : res ? 'Success!' : 'Something went wrong!' }}</h1>
+        <h1>{{ !res ? title : res ? 'Success!' : 'Something went wrong :(' }}</h1>
 
         <custom-select v-if="title === 'Bridge'" ref="selectedChainRef" :options="Zerius.chains" v-model="selectedChain"
             :initialChainId="collectable.chainId" />
@@ -77,10 +77,7 @@ async function bridge() {
 
             <div v-if="res">
                 Mint again
-                <!-- <button v-if="title === 'Bridge'" @click="bridge" :disabled="bridging" class="button__full">
-                    {{ bridging ? 'Bridging' : 'Bridge' }}
-                    <Spinner v-if="bridging" />
-                </button> -->
+                // CLOSE MODAL 
             </div>
 
             <button v-if="title === 'Bridge'" @click="bridge" :disabled="bridging" class="button__full">

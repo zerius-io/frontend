@@ -18,8 +18,8 @@ app.use(router)
 app.use(store)
 app.use(vfm)
 app.use(Toast, {
-    timeout: 60000, // 6000
-    maxToasts: 5,
+    timeout: 10000,
+    maxToasts: 4,
     newestOnTop: true,
     closeButton: false,
     hideProgressBar: true,

@@ -129,6 +129,17 @@ const explorers: Record<number, string> = {
     84531: 'https://goerli.basescan.org/'  // Base Goerli
 }
 
+const ipfs: Record<string, string> = {
+    '1-500000': 'https://zerius.mypinata.cloud/ipfs/QmX7mjWT8wSe2kehgnGJbsyokwfeCF3oiNDp5HKhkmFdwK/',
+    '1000001-1500000': 'https://zerius.mypinata.cloud/ipfs/Qme7km7vLAcNS4FLnJBuG8qwUJJxvDnyRV4TjYngU1oCoG/',
+    '1500001-2000000': 'https://zerius.mypinata.cloud/ipfs/QmduZF1HCVTwdu4wg6gPDC9zPKTp1Uh8ueuFwg98bW2ZXL/',
+    '2000001-2500000': 'https://zerius.mypinata.cloud/ipfs/QmaLg3ZY5B3dkG2t2FBRHucg6jS2Puuc52eEN6UyuR4cbM/',
+    '2500001-3000000': 'https://zerius.mypinata.cloud/ipfs/QmSugq1BqHGSQpjvepAbzVjN65MYt4dCJP1RaTpiF3jYwu/',
+    '3000001-3500000': 'https://zerius.mypinata.cloud/ipfs/QmPxCcPqe8Td6ZM9qwFQoEG73XYoP4soghSCPUM7c8R5EM/',
+    '3500001-4000000': 'https://zerius.mypinata.cloud/ipfs/QmU1QQ6ZyNTXkswH3iZ71ZWyjiPtcEFiE9xqtrgpwi7ugF/',
+    '4000001-4500000': 'https://zerius.mypinata.cloud/ipfs/QmbfPtdUTT28P5NLzcWVhQT36vtCUr6wYaZ2cqWcYGpPHu/',
+}
+
 export default class Zerius {
     static get chains() {
         return chains
@@ -165,6 +176,17 @@ export default class Zerius {
     static getExplorerTxUrl(explorer: { id: number, hash: string }): string {
         const explorerURL = this.getExplorer(explorer.id)
         return explorerURL ? `${explorerURL}/tx/${explorer.hash}` : ''
+    }
+
+    static getIpfsUri(id: number): string {
+        for (const key in ipfs) {
+            const [start, end] = key.split('-').map(Number);
+            if (id >= start && id <= end) {
+                return `${ipfs[key]}${id}.png`
+            }
+        }
+
+        return ''
     }
 }
 
