@@ -18,7 +18,8 @@ import Toast from '../components/Toast.vue'
 
 const { title, collectable } = defineProps<{
     title?: string,
-    collectable?: any
+    collectable?: any,
+    close: any
 }>()
 
 const emit = defineEmits<{
@@ -32,32 +33,29 @@ const bridging = ref()
 
 const res = ref(null)
 
-// const setChainById = () => Evm.setChainById(selectedChainRef.value.selected)
-
 const toast = useToast()
 const showToast = (info, explorer = null) => toast({
     component: Toast,
     props: {
         info,
-        explorer
+        explorer,
+        close
     }
 })
 
 async function bridge() {
     bridging.value = true
-    showToast("Bridging..")
 
+    // TODO  const { result, msg, receipt } =
     res.value = await Evm.bridge(
         collectable.id,
         collectable.chainId,
-        selectedChainRef.value?.selected?.id)
+        selectedChainRef.value?.selected?.id,
+        showToast
+    )
 
     bridging.value = false
-    showToast(res.msg, { id: selectedChain, hash: res.receipt?.hash })
-
-    if (res.value) {
-
-    }
+    showToast(res.value.msg, { id: selectedChainRef.value?.selected?.id, hash: res.value.receipt?.hash })
 }
 </script>
 
@@ -65,37 +63,35 @@ async function bridge() {
     <VueFinalModal class="modal flex" content-class="modal-content" overlay-transition="vfm-fade"
         content-transition="vfm-fade">
 
-        <h1>{{ !res ? title : res ? 'Success!' : 'Something went wrong :(' }}</h1>
+        <h1>{{ !res ? title : res?.result ? 'Success!' : 'Something went wrong :(' }}</h1>
 
-        <custom-select v-if="title === 'Bridge'" ref="selectedChainRef" :options="Zerius.chains" v-model="selectedChain"
-            :initialChainId="collectable.chainId" />
+        <custom-select v-if="title === 'Send'" ref="selectedChainRef" :options="Zerius.chains" v-model="selectedChain"
+            :isolate="true" :initialChainId="collectable.chainId" />
 
         <slot />
 
         <div v-if="res !== null">
-            <img class="status" alt="status" :src="res ? ok_img : error_img" />
+            <img class="status" alt="status" :src="res?.result ? ok_img : error_img" />
 
-            <div v-if="res">
-                Mint again
-                // CLOSE MODAL 
+            <div class="flex" style="flex-direction: column;">
+                <button v-if="title === 'Send'" @click="bridge" :disabled="bridging" class="button__full">
+                    {{ bridging ? 'Sending' : 'Send' }} {{ res?.result && !bridging ? '' : 'again' }}
+                    <Spinner v-if="bridging" />
+                </button>
             </div>
-
-            <button v-if="title === 'Bridge'" @click="bridge" :disabled="bridging" class="button__full">
-                {{ bridging ? 'Bridging' : 'Bridge' }} {{ res && !bridging ? '' : 'again' }}
-                <Spinner v-if="bridging" />
-            </button>
         </div>
         <div v-else>
             <Collectable :item="collectable" :clickable="false" />
 
-            <button v-if="title === 'Bridge'" @click="bridge" :disabled="bridging" class="button__full">
-                {{ bridging ? 'Bridging' : 'Bridge' }}
+            <button v-if="title === 'Send'" @click="bridge" :disabled="bridging" class="button__full">
+                {{ bridging ? 'Sending' : 'Send' }}
                 <Spinner v-if="bridging" />
             </button>
         </div>
-        <!-- <button @click="emit('confirm')" class="button_full">
-            Confirm
-        </button> -->
+
+        <div v-if="title === 'Yay, congratulations!'">
+            <button class="button__full" @click="close">Mint again</button>
+        </div>
     </VueFinalModal>
 </template>
 
@@ -109,34 +105,36 @@ async function bridge() {
         display: flex;
         flex-direction: column;
 
-        padding: 1rem 1.5rem;
+        padding: 1.5rem 1.5rem;
 
         background: #fff;
-        border-radius: 0.5rem;
+        border-radius: 1.5rem;
 
         &->*+* {
             margin: 0.5rem 0;
         }
 
         h1 {
-            color: var(--dark, #18181B);
+            margin: 1rem auto;
 
             font-size: 1.125rem;
             font-style: normal;
             font-weight: 600;
 
             line-height: 80%;
+
+            color: var(--dark, #18181B);
         }
 
         .status {
-            margin: 1rem;
+            margin: .8rem;
 
             width: 12.6875rem;
             height: 12.6875rem;
         }
 
         button {
-            margin: 1rem auto;
+            margin: .5rem auto;
             padding: 0.5rem 1.5rem;
 
             width: 12.5rem;

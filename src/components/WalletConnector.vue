@@ -1,19 +1,5 @@
-<template>
-    <div style="display: flex; justify-content: space-between;">
-        <custom-select ref="selectedChainRef" :options="chains" v-model="selectedChain" @change="setChainById" />
-
-        <button type="button" @click="toggleWallet" ref="walletConnection" :class="connectedWallet ? 'button' : 'button__full'">
-            {{ connectedWallet ? formatAddress(connectedWallet?.accounts[0]?.address) : connectingWallet ?
-                'Connecting...' : 'Connect wallet'
-            }}
-        </button>
-    </div>
-</template>
-  
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, toRaw } from 'vue'
-
-import CustomSelect from "./Select.vue"
+import { ref, computed, onMounted, onBeforeUnmount, toRaw, watchEffect, watch } from 'vue'
 
 import { init } from '@web3-onboard/vue'
 import { useOnboard } from '@web3-onboard/vue'
@@ -24,15 +10,31 @@ import store from '@/store'
 import Evm from './evm'
 import Zerius from './config'
 
+import CustomSelect from "./Select.vue"
+
 const injected = injectedModule()
 const web3Onboard = init({
     wallets: [injected],
-    chains: Zerius.chains
+    chains: Zerius.chains,
+    accountCenter: {
+        desktop: {
+            enabled: false,
+            minimal: true
+        },
+        mobile: {
+            enabled: false,
+            minimal: true
+        }
+    },
+    connect: {
+        autoConnectLastWallet: true
+    }
 })
 
 const {
     connectWallet,
     connectedWallet,
+    alreadyConnectedWallets,
     disconnectConnectedWallet,
     switchChain,
     connect,
@@ -42,17 +44,36 @@ const {
 
 const chains = Zerius.chains
 
-const connectingWallet = ref(false)
-const walletConnectionRef = ref(null)
-
 const selectedChain = ref(null)
 const selectedChainRef = ref(null)
+const walletConnectRef = computed(() => store.state.wallet.walletConnectRef)
 
-const toggleWallet = async () => Evm.toggleWallet(connectingWallet, selectedChainRef.value.selected)
+store.commit('wallet/setSelectedChain', selectedChainRef.value?.selected)
+store.commit('wallet/setWalletConnectRef', walletConnectRef.value)
 
-const setSwitchChain = () => Evm.switchChain(selectedChainRef.value.selected)
-const setChainById = () => Evm.setChainById(selectedChainRef.value.selected)
-
+const toggleWallet = async () => Evm.toggleWallet()
+const setChainById = () => Evm.setChainById()
 const formatAddress = (address) => Evm.formatAddress(address)
 
+watch(selectedChainRef, (newValue, oldValue) => {
+    console.log('COMMIT', selectedChainRef)
+    store.commit('wallet/setSelectedChain', newValue?.selected)
+    setChainById()
+})
+
+onMounted(() => {
+    store.commit('wallet/setOverwriteChain', true)
+})
 </script>
+
+<template>
+    <div style="display: flex; justify-content: space-between;">
+        <custom-select ref="selectedChainRef" :options="chains" v-model="selectedChain" @change="setChainById" />
+
+        <button type="button" @click="toggleWallet" :class="connectedWallet ? 'button' : 'button__full'">
+            {{ connectedWallet ? formatAddress(connectedWallet?.accounts[0]?.address) : walletConnectRef ?
+                'Connecting...' : 'Connect wallet'
+            }}
+        </button>
+    </div>
+</template>

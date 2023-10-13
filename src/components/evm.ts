@@ -14,79 +14,83 @@ interface TxResult {
 }
 
 export default class Evm {
+    static wait = async (ms: number) => new Promise((r) => setTimeout(r, ms))
+
     static get connectedWallet() {
         const { connectedWallet } = useOnboard()
         return connectedWallet.value
+    }
+
+    static set connectedWallet(wallet: any) {
+        store.commit('wallet/setConnectedWallet', wallet)
     }
 
     static get isWalletConnected() {
         return !!this.connectedWallet?.label
     }
 
-    static async toggleWallet(connectingWallet: Ref = null, selectedChain: ChainType = null) {
-        const {
-            connectWallet,
-            connectedWallet,
-            disconnectConnectedWallet
-        } = useOnboard()
+    static get walletConnectRef() {
+        return store.state.wallet.walletConnectRef
+    }
 
-        if (Zerius.isDEV) {
-            console.log('WALLET CONNECT', connectedWallet, selectedChain)
-        }
+    static set walletConnectRef(value: boolean) {
+        store.commit('wallet/setWalletConnectRef', value)
+    }
+
+    static get selectedChain() {
+        return store.state.wallet.selectedChain
+    }
+
+    static get walletChainId(): number {
+        return (this.isWalletConnected) ? parseInt(window.ethereum.chainId) : null
+    }
+
+    static async toggleWallet() {
+        const { connectWallet, connectedWallet, disconnectConnectedWallet } = useOnboard()
+
+        if (Zerius.isDEV) console.log('WALLET CONNECT', connectedWallet, this.selectedChain)
 
         if (this.isWalletConnected) {
-            if (Zerius.isDEV) {
-                console.log('Disconnecting wallet...')
-            }
-
+            if (Zerius.isDEV) console.log('Disconnecting wallet...')
             await disconnectConnectedWallet()
+            this.connectedWallet = undefined
+        }
 
-            store.commit('wallet/setConnectedWallet', undefined)
-        } else {
-            if (Zerius.isDEV) {
-                console.log('Connecting wallet..');
-            }
+        try {
+            if (Zerius.isDEV) console.log('Connecting wallet..')
+            this.walletConnectRef = true
 
-            if (connectingWallet) {
-                connectingWallet.value = true
-            }
+            await connectWallet()
+            await this.setChainById()
 
-            try {
-                await connectWallet()
-
-                if (selectedChain) {
-                    await this.switchChain(selectedChain)
-                }
-
-                if (!this.isWalletConnected) return
-                store.commit('wallet/setConnectedWallet', connectedWallet.value)
-            } catch (error) {
-                if (Zerius.isDEV) {
-                    console.error('Error connecting wallet:', error)
-                }
-            } finally {
-                if (connectingWallet) {
-                    connectingWallet.value = false
-                }
-            }
+            this.connectedWallet = connectedWallet.value
+        } catch (error) {
+            if (Zerius.isDEV) console.error('Error connecting wallet:', error)
+        } finally {
+            this.walletConnectRef = false
         }
     }
 
-    static async switchChain(selectedChain: ChainType) {
-        if (!this.isWalletConnected) return
-        const currentChainId = this.connectedWallet.provider.chainId
+    static async setChainById() {
+        if (Zerius.isDEV) console.log('SET CHAIN')
+        try {
+            if (!this.isWalletConnected || !this.selectedChain) return
 
-        if (currentChainId !== this.toHex(selectedChain.id)) {
-            this.setChainById(selectedChain)
-        }
-    }
+            const currentChainId = this.connectedWallet.provider.chainId
+            if (currentChainId === this.toHex(this.selectedChain.id)) {
+                if (Zerius.isDEV) console.log('NOTHING TO CHANGE')
+                return
+            }
 
-    static setChainById(selectedChain: ChainType) {
-        const { setChain } = useOnboard()
+            if (Zerius.isDEV) console.log('SETTING', { wallet: this.connectedWallet.label, chainId: this.selectedChain.id })
 
-        if (this.isWalletConnected && selectedChain) {
-            setChain({ wallet: this.connectedWallet.label, chainId: selectedChain.id })
-            store.commit('wallet/setSelectedChain', selectedChain)
+            const { setChain } = useOnboard()
+
+            await setChain({ wallet: this.connectedWallet.label, chainId: this.selectedChain.id })
+            store.commit('wallet/setSelectedChain', this.selectedChain)
+            console.log(this.selectedChain)
+        } catch (error) {
+            if (Zerius.isDEV) console.error('Error switch chain:', error)
         }
     }
 
@@ -97,19 +101,27 @@ export default class Evm {
         return `${startChars}...${endChars}`.toUpperCase()
     }
 
-    static toHex(d: number) {
+    static toHex(d: number | string) {
         return ('0' + (Number(d).toString(16))).slice(-2).toUpperCase()
     }
 
-    static async mint(): Promise<TxResult> {
+    static async mint(toast?: (message: string, data?: any) => void): Promise<TxResult> {
         try {
+            if (Zerius.isDEV) console.log('Mint..')
+
+            if (!this.isWalletConnected) {
+                await this.toggleWallet()
+            }
+
+            this.setChainById()
+
             const selectedChain = store.getters['wallet/selectedChain']
             const contractAddress = Zerius.getContractForChain(selectedChain.id)
 
+            if (Zerius.isDEV) console.log(selectedChain, contractAddress)
+
             if (!window.ethereum || !this.isWalletConnected || !contractAddress) {
-                if (Zerius.isDEV) {
-                    console.log(!window.ethereum, !this.isWalletConnected, !contractAddress)
-                }
+                if (Zerius.isDEV) console.log(!window.ethereum, !this.isWalletConnected, !contractAddress)
 
                 return {
                     result: false,
@@ -129,6 +141,19 @@ export default class Evm {
 
             let options = { value: BigInt(mintFee), gasLimit: BigInt(0) }
 
+            const TOTAL_COST = mintFee // + gasLimit
+
+            //////////// CHECK BALANCE ////////////
+            const userBalance = await provider.getBalance(sender)
+            if (Zerius.isDEV) console.log('userBalance', userBalance)
+            if (userBalance < TOTAL_COST) {
+                if (Zerius.isDEV) console.log('Not enough funds to mint')
+                return {
+                    result: false,
+                    msg: 'Not enough funds to mint',
+                }
+            }
+
             const gasLimit = await contract.mint.estimateGas(options)
             options.gasLimit = gasLimit
 
@@ -137,6 +162,8 @@ export default class Evm {
             if (Zerius.isDEV) {
                 console.log('Transaction sent:', txResponse)
             }
+
+            if (toast) toast("Minting..", { id: selectedChain?.id, hash: txResponse?.hash })
 
             const receipt = await txResponse.wait()
 
@@ -150,9 +177,7 @@ export default class Evm {
                 receipt
             }
         } catch (error) {
-            if (Zerius.isDEV) {
-                console.error('Error minting NFT:', error)
-            }
+            if (Zerius.isDEV) console.error('Error minting NFT:', error)
 
             return {
                 result: false,
@@ -161,31 +186,28 @@ export default class Evm {
         }
     }
 
-    static async bridge(tokenId: number, chainId: number, toChain: number): Promise<TxResult> {
+    static async bridge(tokenId: number, chainId: number, toChain: number, toast?: (message: string, data?: any) => void): Promise<TxResult> {
         const LZ_VERSION = 1
         const GAS_MULTIPLY = BigInt(3)
 
         const abiCoder = ethers.AbiCoder.defaultAbiCoder()
 
-        if (Zerius.isDEV) toChain = chainId === 84531 ? 80001 : 84531
-
         try {
-            // console.log('BRIDGE', 'id', tokenId, 'from chain', chainId, 'to', toChain)
+            // this.setChainById()
+
+            if (Zerius.isDEV) console.log('BRIDGE', 'id', tokenId, 'from chain', chainId, 'to', toChain)
             //////////// CHECK ////////////
             const selectedChain = store.getters['wallet/selectedChain']
             // console.log('selectedChain', selectedChain)
-            if (selectedChain.id != chainId) await this.switchChain(chainId)
+            if (selectedChain.id != chainId) await this.setChainById()
 
             const _dstChainId = Zerius.getLzChain(toChain)
 
             const contractAddress = Zerius.getContractForChain(selectedChain.id)
 
             if (!window.ethereum || !this.isWalletConnected || !contractAddress || !_dstChainId) {
-                if (Zerius.isDEV) {
-                    console.error('Invalid configuration for bridge',
-                        !window.ethereum, !this.isWalletConnected, contractAddress, _dstChainId)
-                }
-
+                if (Zerius.isDEV) console.error('Invalid configuration for bridge',
+                    !window.ethereum, !this.isWalletConnected, contractAddress, _dstChainId)
                 return {
                     result: false,
                     msg: 'Something went wrong :(',
@@ -198,7 +220,9 @@ export default class Evm {
             const signer = await provider.getSigner()
             const sender = await signer.getAddress()
 
-            const _toAddress = ethers.hexlify(ethers.toUtf8Bytes(sender))
+            const _toAddress = ethers.solidityPacked(
+                ["address"], [sender]
+            )
 
             const contract = new ethers.Contract(contractAddress, ABI, signer)
             //////////// PREPARE ////////////
@@ -208,7 +232,7 @@ export default class Evm {
                 ["uint16", "uint256"],
                 [LZ_VERSION, MIN_GAS_TO_TRANSFER]
             )
-            // console.log('adapterParams', adapterParams)
+            if (Zerius.isDEV) console.log('adapterParams', adapterParams)
 
             const { nativeFee } = await contract.estimateSendFee(
                 _dstChainId,
@@ -217,28 +241,30 @@ export default class Evm {
                 false,
                 adapterParams
             )
-            // console.log('nativeFee', nativeFee)
+            if (Zerius.isDEV) console.log('nativeFee', nativeFee)
             //  nativeFee + minGasToTransferAndStore * 2
             const TOTAL_COST = nativeFee + BRIDGE_FEE + MIN_GAS_TO_TRANSFER * GAS_MULTIPLY
-            // console.log('TOTAL_COST', TOTAL_COST)
+            if (Zerius.isDEV) console.log('TOTAL_COST', TOTAL_COST)
 
             //////////// CHECK BALANCE ////////////
             const userBalance = await provider.getBalance(sender)
             // console.log('userBalance', userBalance)
             if (userBalance < TOTAL_COST) {
+                if (Zerius.isDEV) console.log('Not enough funds to send')
                 return {
                     result: false,
-                    msg: 'Not enough funds to bridge',
+                    msg: 'Not enough funds to send',
                 }
             }
 
             //////////// BRIDGE ////////////
             let bridgeOptions = {
                 value: TOTAL_COST,
-                gasLimit: ethers.BigNumber.from(0)
+                gasLimit: BigInt(0)
             }
+            if (Zerius.isDEV) console.log('bridgeOptions', bridgeOptions)
 
-            const estimatedGasLimit = await contract.estimateGas.sendFrom(
+            const estimatedGasLimit = await contract.sendFrom.estimateGas(
                 sender,
                 _dstChainId,
                 _toAddress,
@@ -249,6 +275,7 @@ export default class Evm {
                 bridgeOptions
             )
             bridgeOptions.gasLimit = estimatedGasLimit
+            if (Zerius.isDEV) console.log('estimatedGasLimit', estimatedGasLimit)
 
             // Sending the transaction
             const transaction = await contract.sendFrom(
@@ -261,26 +288,26 @@ export default class Evm {
                 adapterParams,
                 bridgeOptions
             )
+            if (Zerius.isDEV) console.log('transaction', transaction)
+
+            if (toast) toast("Sending..", { id: selectedChain?.id, hash: transaction?.hash })
 
             const receipt = await transaction.wait()
 
-            if (Zerius.isDEV) {
-                console.log('Bridge successful:', receipt)
-            }
-
+            if (Zerius.isDEV) console.log('Send successful:', receipt)
             return {
                 result: receipt.status === 1,
-                msg: receipt.status === 1 ? 'Successful Bridge' : 'Bridge failed',
+                msg: receipt.status === 1 ? 'Successful send' : 'Send failed',
                 receipt
             }
         } catch (error) {
             if (Zerius.isDEV) {
-                console.error('Error bridging NFT:', error);
+                console.error('Error sent NFT:', error);
             }
 
             return {
                 result: false,
-                msg: 'Bridge failed',
+                msg: 'Send failed',
             }
         }
     }
@@ -350,7 +377,7 @@ export default class Evm {
     }
 
     static async collection() {
-        const fetchWithRetry = async (fetchFunction, maxRetries = 3, delay = 1000) => {
+        const fetchWithRetry = async (fetchFunction, maxRetries = 5, delay = 1500) => {
             let retries = 0
             while (retries < maxRetries) {
                 try {
@@ -374,31 +401,35 @@ export default class Evm {
             const ITEMS = []
 
             for (const [chainId, contractAddress] of Object.entries(Zerius.contracts)) {
-                // if (Zerius.isDEV) console.log(chainId, contractAddress)
-
                 // const provider = new ethers.JsonRpcProvider(Zerius.getChainById(chainId).rpcUrl)
                 // const signer = await provider.getSigner()
                 // const owner = await signer.getAddress()
                 try {
-                    const contract = new ethers.Contract(contractAddress, ABI, signer)
+                    // REMOVE WHEN CORS FIX
+                    if (Number(this.connectedWallet.provider.chainId).toString() === chainId) {
+                        // if (Zerius.isDEV) console.log('COLLECTION', chainId, contractAddress)
 
-                    const tokensCount = Number(await contract.balanceOf(owner))
+                        const contract = new ethers.Contract(contractAddress, ABI, signer)
 
-                    const chainItems = []
-                    for (let i = 0; i < tokensCount; i++) {
-                        const fetchFunction = async () => {
-                            const id = Number(await contract.tokenOfOwnerByIndex(owner, i))
-                            // const uri = await contract.tokenURI(id)
-                            const uri = Zerius.getIpfsUri(id)
+                        const tokensCount = Number(await contract.balanceOf(owner))
+                        // if (Zerius.isDEV) console.log('COLLECTION count', tokensCount)
 
-                            return { chainId, id, uri }
+                        const chainItems = []
+                        for (let i = 0; i < tokensCount; i++) {
+                            const fetchFunction = async () => {
+                                const id = Number(await contract.tokenOfOwnerByIndex(owner, i))
+                                // const uri = await contract.tokenURI(id)
+                                const uri = Zerius.getIpfsUri(id)
+
+                                return { chainId, id, uri }
+                            }
+
+                            const result = await fetchWithRetry(fetchFunction, 6, 1500)
+                            chainItems.push(result)
                         }
 
-                        const result = await fetchWithRetry(fetchFunction, 3, 1000)
-                        chainItems.push(result);
+                        if (chainItems.length) ITEMS.push(chainItems)
                     }
-
-                    if (chainItems.length) ITEMS.push(chainItems)
                 } catch (error) {
                     if (Zerius.isDEV) {
                         // console.error('Error fetch:', chainId, error)
@@ -406,6 +437,7 @@ export default class Evm {
                 }
             }
 
+            // if (Zerius.isDEV) console.log('COLLECTION result', ITEMS.flat().sort((a, b) => a.id - b.id))
             return ITEMS.flat().sort((a, b) => a.id - b.id)
         } catch (error) {
             if (Zerius.isDEV) {

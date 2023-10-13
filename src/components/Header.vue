@@ -1,13 +1,13 @@
 <template>
     <div class="flex header">
-        <router-link to="/">
+        <router-link to="/" class="header-left">
             <div class=flex logo>
                 <img class="logo-icon" alt="logo" :src="logoImg" />
                 <img class="logo-text" alt="logo" :src="logoTextImg" />
             </div>
         </router-link>
 
-        <div style="display: flex;">
+        <div class="header-center" style="display: flex;">
             <router-link to="/" :class="{ active: route.path === '/leaderboard' }" class="nav">
                 <h3>Mint & Bridge</h3>
             </router-link>
@@ -16,7 +16,7 @@
             </span>
         </div>
 
-        <WalletConnector />
+        <WalletConnector class="header-right" />
     </div>
 </template>
   

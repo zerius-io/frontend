@@ -25,9 +25,9 @@ import iconTwitter from '/img/footer/twitter.svg'
 import iconTelegram from '/img/footer/telegram.png'
 
 const lzLink = 'https://layerzero.network/'
-const githubLink = 'https://github.com/ifrosta'
-const twitterLink = 'https://twitter.com/'
-const telegramLink = 'https://t.me/'
+const githubLink = 'https://medium.com/@zerius.io'
+const twitterLink = 'https://twitter.com/Zerius_io'
+const telegramLink = 'https://t.me/zerius_io'
 
 const logoLzSrc = logoLz
 const iconGitHubSrc = iconGitHub

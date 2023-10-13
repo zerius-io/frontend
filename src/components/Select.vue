@@ -1,5 +1,9 @@
 <script lang="ts">
-import { ref, computed, onMounted, watchEffect } from 'vue'
+import { ref, computed, onMounted, watchEffect, watch } from 'vue'
+import { useStore } from 'vuex'
+
+import Evm from './evm'
+import Zerius from './config'
 
 export default {
     props: {
@@ -10,9 +14,15 @@ export default {
         initialChainId: {
             type: String,
             default: null
+        },
+        isolate: {
+            type: Boolean,
+            default: false
         }
     },
     setup(props, { emit }) {
+        const store = useStore()
+
         const open = ref(false)
         const selectRef = ref(null)
         const selected = ref(props.options[0] || null)
@@ -34,20 +44,54 @@ export default {
             selected.value = option
             open.value = false
 
+            if (!props.isolate) {
+                store.commit('wallet/setSelectedChain', selected.value)
+            }
+
             emit('change')
             emit('input', option)
         }
 
         const getImageSrc = (chain) => {
-            return `./src/assets/img/chains/${chain.icon ? chain.icon : `${chain.label.toLowerCase()}.svg`}`
+            return `/img/chains/${chain.icon ? chain.icon : `${chain.label.toLowerCase()}.svg`}`
         }
 
         onMounted(() => {
             if (props.initialChainId !== null) {
                 selected.value = selectRandomChain()
-
             }
         })
+
+        if (!props.isolate) {
+            watch(() => store.getters['wallet/overwriteChain'], (newValue, oldValue) => {
+                const retryCount = ref(0)
+
+                const executeLogic = () => {
+                    if (newValue !== oldValue) {
+                        const chainObj = Zerius.getChainById(Evm.walletChainId)
+
+                        if (chainObj) selected.value = chainObj
+                        store.commit('wallet/setOverwriteChain', false)
+                        store.commit('wallet/setSelectedChain', selected.value)
+                    }
+                }
+
+                const retryLogic = () => {
+                    if (Evm.isWalletConnected || retryCount.value >= 10) {
+                        if (!Evm.isWalletConnected) {
+                            // console.log('Failed after 10 retries.')
+                            return
+                        }
+                        executeLogic()
+                    } else {
+                        retryCount.value++;
+                        setTimeout(retryLogic, 500)
+                    }
+                }
+
+                retryLogic()
+            })
+        }
 
         watchEffect(() => {
             const handleClickOutside = (event) => {
@@ -71,7 +115,7 @@ export default {
             getImageSrc,
             selectRef
         }
-    },
+    }
 }
 </script>
 
@@ -126,7 +170,7 @@ export default {
         display: flex;
         align-items: center;
 
-        padding-left: 1rem;
+        padding-left: .8rem;
 
         border-radius: 6px;
 
@@ -200,7 +244,8 @@ export default {
         }
 
         &::-webkit-scrollbar-thumb {
-            // background: rgba(255, 255, 255, 0.90);
+            background: rgba(179, 179, 179, 0.9);
+            border-radius: .85rem;
             // outline: 1px solid slategrey;
         }
 
@@ -224,9 +269,15 @@ export default {
             align-items: center;
 
             color: black;
-            padding-left: 1em;
+            padding-left: .8rem;
             cursor: pointer;
             user-select: none;
+
+            transition: .3s all;
+
+            &:hover {
+                background: rgba(255, 255, 255, 1);
+            }
         }
     }
 

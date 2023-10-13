@@ -5,7 +5,8 @@ export type ChainType = {
     token: string,
     label: string,
     rpcUrl: string,
-    icon?: string
+    icon?: string,
+    blockExplorerUrl?: string,
 }
 
 const chains: ChainType[] = [
@@ -130,8 +131,8 @@ const explorers: Record<number, string> = {
 }
 
 const ipfs: Record<string, string> = {
-    '1-500000': 'https://zerius.mypinata.cloud/ipfs/QmX7mjWT8wSe2kehgnGJbsyokwfeCF3oiNDp5HKhkmFdwK/',
-    '1000001-1500000': 'https://zerius.mypinata.cloud/ipfs/Qme7km7vLAcNS4FLnJBuG8qwUJJxvDnyRV4TjYngU1oCoG/',
+    '1-500000': 'https://zerius.mypinata.cloud/ipfs/QmX7mjWT8wSe2kehgnGJbsyokwfeCF3oiNDp5HKhkmFdwK/', // Ethereum
+    '1000001-1500000': 'https://zerius.mypinata.cloud/ipfs/QmNWKAgfo1BqMhWLK4gFMtmnhoLxQtq7rHefKkYUZRu1WR/',// Arbitrum
     '1500001-2000000': 'https://zerius.mypinata.cloud/ipfs/QmduZF1HCVTwdu4wg6gPDC9zPKTp1Uh8ueuFwg98bW2ZXL/',
     '2000001-2500000': 'https://zerius.mypinata.cloud/ipfs/QmaLg3ZY5B3dkG2t2FBRHucg6jS2Puuc52eEN6UyuR4cbM/',
     '2500001-3000000': 'https://zerius.mypinata.cloud/ipfs/QmSugq1BqHGSQpjvepAbzVjN65MYt4dCJP1RaTpiF3jYwu/',

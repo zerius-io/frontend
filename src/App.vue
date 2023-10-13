@@ -45,17 +45,21 @@ body {
   text-align: center;
   color: #2c3e50;
 
-  // background: linear-gradient(90deg,
-  //     rgba(250, 240, 240, 1) 0%,
-  //     rgba(249, 237, 234, 1) 50%,
-  //     rgba(248, 242, 211, 1) 100%);
-
-  // background: radial-gradient(circle, rgba(249, 237, 234, 1) 7%, rgba(255, 238, 238, 1) 58%, rgba(248, 242, 211, 1) 92%, rgba(255, 255, 255, 1) 100%);
-  // background: linear-gradient(90deg, rgba(249, 237, 234, 1) 3%, rgba(255, 238, 238, 1) 66%, rgba(248, 242, 211, 1) 96%, rgba(255, 255, 255, 1) 100%);
-  // background: linear-gradient(200deg, rgba(249, 237, 234, 1) 7%, rgba(255, 238, 238, 1) 58%, rgba(248, 242, 211, 1) 96%, rgba(255, 255, 255, 1) 100%);
-
   background: rgb(249, 237, 234);
   background: linear-gradient(90deg, rgba(249, 237, 234, 1) 3%, rgba(255, 238, 238, 1) 66%, rgba(248, 242, 211, 1) 96%), url('/img/bg.png');
+
+  &::-webkit-scrollbar {
+    position: fixed;
+    width: 5px;
+  }
+
+  &::-webkit-scrollbar-track {}
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(179, 179, 179, 0.9);
+    border-radius: .85rem;
+    // outline: 1px solid slategrey;
+  }
 }
 
 body::after {
@@ -226,9 +230,6 @@ select {
 }
 
 @media screen and (max-width: $small) {
-  button {
-    border-radius: 0.25rem;
-  }
 
   button,
   .select,
@@ -259,5 +260,11 @@ select {
     right: 4px;
 
   }
+
+  button {
+    font-size: 1rem;
+    border-radius: 0.25rem;
+  }
+
 }
 </style>

@@ -20,6 +20,29 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { Carousel, Slide } from 'vue3-carousel'
 import 'vue3-carousel/dist/carousel.css'
 
+const carouselImages = [
+    '6.png',
+    '10.png',
+    '12.png',
+    '13.png',
+    '16.png',
+    '21.png',
+    '23.png',
+    '29.png',
+    '37.png',
+    '45.png',
+    '58.png',
+    '60.png',
+    '75.png',
+    '94.png',
+    '115.png',
+    '122.png',
+    '123.png',
+    '138.png',
+    '207.png',
+    '265.png'
+]
+
 export default {
     name: 'AutoPlayCarousel',
     components: {
@@ -32,8 +55,9 @@ export default {
         let autoScrollInterval = null
 
         const fetchImagesFromFolder = () => {
-            const imageContext = import.meta.glob('@/assets/img/carousel/*.{png,jpg,jpeg,gif,svg}')
-            images.value = Object.values(imageContext).map(path => path.name)
+            // const imageContext = import.meta.glob('@/assets/img/carousel/*.{png,jpg,jpeg,gif,svg}')
+            // images.value = Object.values(imageContext).map(path => path.name)
+            images.value = carouselImages.map(name => `/img/carousel/${name}`)
             shuffleImages()
         }
 
@@ -42,7 +66,7 @@ export default {
                 if (carouselRef.value) {
                     carouselRef.value.next()
                 }
-            }, 3000) // Auto-scroll every 3 seconds
+            }, 3000)
         }
 
         const stopAutoScroll = () => {
@@ -77,7 +101,6 @@ export default {
 }
 </script>
 
-  
 <style lang=scss>
 $small: 1100px;
 $medium: 1500px;
