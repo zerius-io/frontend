@@ -150,7 +150,7 @@ $medium: 1500px;
         height: 12.5rem;
     }
 
-    @media screen and (max-width: 650px) {
+    @media screen and (max-width: 550px) {
         width: 10.5rem;
         height: 10.5rem;
     }

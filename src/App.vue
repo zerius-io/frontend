@@ -230,7 +230,6 @@ select {
 }
 
 @media screen and (max-width: $small) {
-
   button,
   .select,
   .select__selected {
@@ -243,6 +242,9 @@ select {
   }
 
   .select {
+    margin-left: auto;
+    margin-right: auto;
+
     padding: 0.375rem 0.5rem;
 
     height: 1.2rem;
@@ -250,7 +252,7 @@ select {
   }
 
   .select__selected {
-    height: 1.3rem;
+    height: 1.15rem;
   }
 
   .select__items {
@@ -262,7 +264,7 @@ select {
   }
 
   button {
-    font-size: 1rem;
+    font-size: .8rem;
     border-radius: 0.25rem;
   }
 

@@ -226,11 +226,13 @@ export default class Evm {
 
             const contract = new ethers.Contract(contractAddress, ABI, signer)
             //////////// PREPARE ////////////
-            const BRIDGE_FEE = await contract.bridgeFee()
-            const MIN_GAS_TO_TRANSFER = BigInt(250000) // await contract.minGasToTransferAndStore()
+            // const BRIDGE_FEE = await contract.bridgeFee()
+            // const MIN_GAS_TO_TRANSFER = BigInt(250000) // await contract.minGasToTransferAndStore()
+            const MIN_DST_GAS = await contract.minDstGasLookup(_dstChainId, 1)
+
             const adapterParams = ethers.solidityPacked(
                 ["uint16", "uint256"],
-                [LZ_VERSION, MIN_GAS_TO_TRANSFER]
+                [LZ_VERSION, MIN_DST_GAS]
             )
             if (Zerius.isDEV) console.log('adapterParams', adapterParams)
 
@@ -243,7 +245,7 @@ export default class Evm {
             )
             if (Zerius.isDEV) console.log('nativeFee', nativeFee)
             //  nativeFee + minGasToTransferAndStore * 2
-            const TOTAL_COST = nativeFee + BRIDGE_FEE + MIN_GAS_TO_TRANSFER * GAS_MULTIPLY
+            const TOTAL_COST = nativeFee // + BRIDGE_FEE + MIN_GAS_TO_TRANSFER * GAS_MULTIPLY
             if (Zerius.isDEV) console.log('TOTAL_COST', TOTAL_COST)
 
             //////////// CHECK BALANCE ////////////

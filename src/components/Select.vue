@@ -28,13 +28,32 @@ export default {
         const selected = ref(props.options[0] || null)
 
         const filteredOptions = computed(() => {
-            return props.options.filter((option) => option.id !== selected.value.id)
+            const walletSelectedChain = store.state.wallet.selectedChain?.id || null
+            // console.log('ISO', props.isolate, selected.value.id, walletSelectedChain)
+            if (props.isolate) {
+                let block = []
+
+                if (walletSelectedChain === 7777777) {
+                    // console.log('ISO 1', props.isolate)
+                    block = [56, 43114]
+                }
+
+                if ([56, 43114].includes(walletSelectedChain)) {
+                    // console.log('ISO 2', props.isolate)
+                    block = [7777777]
+                }
+
+                // console.log('ISO 3', props.isolate)
+                return props.options.filter((option) => !block.includes(option.id))
+            }
+            // return props.options.filter((option) => option.id !== selected.value.id)
+            return props.options
         })
 
         const selectRandomChain = () => {
             const availableOptions = props.initialChainId !== null
-                ? props.options.filter(option => option.id != props.initialChainId)
-                : props.options
+                ? filteredOptions.value.filter(option => option.id != props.initialChainId)
+                : filteredOptions.value
 
             const randomIndex = Math.floor(Math.random() * availableOptions.length)
             return availableOptions[randomIndex]
@@ -128,7 +147,7 @@ export default {
             {{ selected.label }}
         </div>
         <div class="select__items" :class="{ select__hide: !open }">
-            <div v-for="(option, i) of options" :key="i" @click="selectOption(option)" class="select__items-item">
+            <div v-for="(option, i) of filteredOptions" :key="i" @click="selectOption(option)" class="select__items-item">
                 <img :src="getImageSrc(option)" class="select__icon" />
                 {{ option.label }}
             </div>

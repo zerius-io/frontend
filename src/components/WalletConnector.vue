@@ -56,7 +56,6 @@ const setChainById = () => Evm.setChainById()
 const formatAddress = (address) => Evm.formatAddress(address)
 
 watch(selectedChainRef, (newValue, oldValue) => {
-    console.log('COMMIT', selectedChainRef)
     store.commit('wallet/setSelectedChain', newValue?.selected)
     setChainById()
 })

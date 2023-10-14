@@ -94,10 +94,17 @@ const getChainIconSrc = (chainId: number) => {
         border-radius: 1.5rem 1.5rem 0rem 0rem;
         object-fit: cover;
     }
+}
 
-    @media screen and (max-width: 1200) {
+@media screen and (max-width: 1050px) {
+    .collectable-item {
         margin: .5rem;
+
         width: 10rem;
+
+        &-img {
+            height: 10rem;
+        }
     }
 }
 </style>

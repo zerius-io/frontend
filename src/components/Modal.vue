@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 import { VueFinalModal } from 'vue-final-modal'
 import { useToast } from 'vue-toastification'
+
+import store from '@/store'
 
 import ok_img from '/img/ok.svg'
 import error_img from '/img/error.svg'
@@ -29,8 +31,7 @@ const emit = defineEmits<{
 const selectedChain = ref(null)
 const selectedChainRef = ref(null)
 
-const bridging = ref()
-
+const bridging = ref(false)
 const res = ref(null)
 
 const toast = useToast()
@@ -44,54 +45,66 @@ const showToast = (info, explorer = null) => toast({
 })
 
 async function bridge() {
+    const chainId = selectedChainRef.value?.selected?.id
+
     bridging.value = true
 
-    // TODO  const { result, msg, receipt } =
-    res.value = await Evm.bridge(
+    const { result, msg, receipt } = await Evm.bridge(
         collectable.id,
         collectable.chainId,
-        selectedChainRef.value?.selected?.id,
+        chainId,
         showToast
     )
+    res.value = { result, msg, receipt }
 
     bridging.value = false
-    showToast(res.value.msg, { id: selectedChainRef.value?.selected?.id, hash: res.value.receipt?.hash })
+
+    showToast(msg, { id: chainId, hash: receipt?.hash })
+
+    if (result) {
+        store.commit('wallet/setCollection', true)
+    }
 }
+
+const mintCase = computed(() => title === 'Yay, congratulations!')
+
+const bridgeCase = computed(() => title === 'Send')
+const afterBridge = computed(() => res.value !== null)
+const bridgeOk = computed(() => res.value?.result)
 </script>
 
 <template>
     <VueFinalModal class="modal flex" content-class="modal-content" overlay-transition="vfm-fade"
         content-transition="vfm-fade">
+        <h1>{{ !res ? title : bridgeOk ? 'Success!' : 'Something went wrong :(' }}</h1>
 
-        <h1>{{ !res ? title : res?.result ? 'Success!' : 'Something went wrong :(' }}</h1>
-
-        <custom-select v-if="title === 'Send'" ref="selectedChainRef" :options="Zerius.chains" v-model="selectedChain"
+        <custom-select v-if="bridgeCase" ref="selectedChainRef" :options="Zerius.chains" v-model="selectedChain"
             :isolate="true" :initialChainId="collectable.chainId" />
 
-        <slot />
-
-        <div v-if="res !== null">
-            <img class="status" alt="status" :src="res?.result ? ok_img : error_img" />
-
-            <div class="flex" style="flex-direction: column;">
-                <button v-if="title === 'Send'" @click="bridge" :disabled="bridging" class="button__full">
-                    {{ bridging ? 'Sending' : 'Send' }} {{ res?.result && !bridging ? '' : 'again' }}
-                    <Spinner v-if="bridging" />
-                </button>
-            </div>
-        </div>
-        <div v-else>
+        <div v-if="!afterBridge">
             <Collectable :item="collectable" :clickable="false" />
 
-            <button v-if="title === 'Send'" @click="bridge" :disabled="bridging" class="button__full">
+            <button v-if="bridgeCase" @click="bridge" :disabled="bridging" class="button__full">
                 {{ bridging ? 'Sending' : 'Send' }}
                 <Spinner v-if="bridging" />
             </button>
         </div>
+        <div v-else>
+            <img class="status" alt="status" :src="bridgeOk ? ok_img : error_img" />
 
-        <div v-if="title === 'Yay, congratulations!'">
+            <div v-if="bridgeCase" class="flex" style="flex-direction: column;">
+                <button @click="close" :disabled="bridging" class="button__full">
+                    {{ bridging ? 'Sending' : 'Send again' }}
+                    <Spinner v-if="bridging" />
+                </button>
+            </div>
+        </div>
+
+        <div v-if="mintCase">
             <button class="button__full" @click="close">Mint again</button>
         </div>
+
+        <slot />
     </VueFinalModal>
 </template>
 
@@ -100,6 +113,10 @@ async function bridge() {
     display: flex;
     justify-content: center;
     align-items: center;
+
+    .collectable-item {
+        margin: 1rem auto;
+    }
 
     &-content {
         display: flex;

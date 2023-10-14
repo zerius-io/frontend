@@ -34,9 +34,6 @@ const route = useRoute()
 </script>
   
 <style lang="scss">
-$medium: 1500px;
-$small: 1050px;
-
 .header {
     margin: 1.5rem 0;
 
@@ -70,12 +67,14 @@ $small: 1050px;
         }
     }
 
-    @media screen and (max-width: $medium) {
+    @media screen and (max-width: 1500px) {
         padding: 0 4rem;
     }
 
-    @media screen and (max-width: $small) {
+    @media screen and (max-width: 1050px) {
         padding: 0 1rem;
+
+        flex-direction: column;
 
         .logo {
             width: 7rem;
@@ -88,6 +87,19 @@ $small: 1050px;
 
         span {
             display: none;
+        }
+
+        &-right {
+            margin-top: .8rem;
+
+            .select {
+                margin-right: 1rem;
+            }
+
+            .button {
+                padding: .4rem;
+                height: 2.1rem;
+            }
         }
     }
 }
