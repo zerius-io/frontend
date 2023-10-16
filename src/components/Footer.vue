@@ -5,8 +5,11 @@
         </a>
 
         <div>
-            <a :href="githubLink" target="_blank" rel="noopener noreferrer">
-                <img class="icon" alt="github" :src="iconGitHub" />
+            <a :href="gitBookLink" target="_blank" rel="noopener noreferrer">
+                <img class="icon" alt="gitbook" :src="iconGitbook" />
+            </a>
+            <a :href="mediumLink" target="_blank" rel="noopener noreferrer">
+                <img class="icon" alt="medium" :src="iconMedium" />
             </a>
             <a :href="twitterLink" target="_blank" rel="noopener noreferrer">
                 <img class="icon" alt="twitter" :src="iconTwitter" />
@@ -20,20 +23,16 @@
   
 <script setup>
 import logoLz from '/img/footer/lz.svg'
-import iconGitHub from '/img/footer/github.png'
+import iconGitbook from '/img/footer/gitbook.png'
+import iconMedium from '/img/footer/github.png'
 import iconTwitter from '/img/footer/twitter.svg'
 import iconTelegram from '/img/footer/telegram.png'
 
-const lzLink = 'https://layerzero.network/'
-const githubLink = 'https://medium.com/@zerius.io'
+const lzLink = 'https://layerzero.network'
+const gitBookLink = 'https://zerius.gitbook.io/zerius'
+const mediumLink = 'https://medium.com/@zerius.io'
 const twitterLink = 'https://twitter.com/Zerius_io'
 const telegramLink = 'https://t.me/zerius_io'
-
-const logoLzSrc = logoLz
-const iconGitHubSrc = iconGitHub
-const iconTwitterSrc = iconTwitter
-const iconTelegramSrc = iconTelegram;
-
 </script>
   
 <style lang="scss">
