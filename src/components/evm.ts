@@ -1,10 +1,10 @@
-import { Ref } from 'vue'
 import { ethers } from 'ethers'
 import { useOnboard } from '@web3-onboard/vue'
 
 import store from '@/store'
 
-import Zerius, { ChainType } from './config'
+import Zerius from './config'
+
 import ABI from '@/assets/ABI.json'
 
 interface TxResult {
@@ -134,16 +134,14 @@ export default class Evm {
 
             const signer = await provider.getSigner()
             const sender = await signer.getAddress()
-            // const nonce = await signer.getNonce(sender)
 
             const contract = new ethers.Contract(contractAddress, ABI, signer)
             const mintFee = await contract.mintFee()
 
             let options = { value: BigInt(mintFee), gasLimit: BigInt(0) }
 
-            const TOTAL_COST = mintFee // + gasLimit
+            const TOTAL_COST = mintFee
 
-            //////////// CHECK BALANCE ////////////
             const userBalance = await provider.getBalance(sender)
             if (Zerius.isDEV) console.log('userBalance', userBalance)
             if (userBalance < TOTAL_COST) {
@@ -193,12 +191,9 @@ export default class Evm {
         const abiCoder = ethers.AbiCoder.defaultAbiCoder()
 
         try {
-            // this.setChainById()
-
             if (Zerius.isDEV) console.log('BRIDGE', 'id', tokenId, 'from chain', chainId, 'to', toChain)
-            //////////// CHECK ////////////
+
             const selectedChain = store.getters['wallet/selectedChain']
-            // console.log('selectedChain', selectedChain)
             if (selectedChain.id != chainId) await this.setChainById()
 
             const _dstChainId = Zerius.getLzChain(toChain)
@@ -213,7 +208,7 @@ export default class Evm {
                     msg: 'Something went wrong :(',
                 }
             }
-            //////////// INIT ////////////
+
             const web3 = window.ethereum
             const provider = new ethers.BrowserProvider(web3)
 
@@ -225,9 +220,7 @@ export default class Evm {
             )
 
             const contract = new ethers.Contract(contractAddress, ABI, signer)
-            //////////// PREPARE ////////////
-            // const BRIDGE_FEE = await contract.bridgeFee()
-            // const MIN_GAS_TO_TRANSFER = BigInt(250000) // await contract.minGasToTransferAndStore()
+
             const MIN_DST_GAS = await contract.minDstGasLookup(_dstChainId, 1)
 
             const adapterParams = ethers.solidityPacked(
@@ -244,13 +237,11 @@ export default class Evm {
                 adapterParams
             )
             if (Zerius.isDEV) console.log('nativeFee', nativeFee)
-            //  nativeFee + minGasToTransferAndStore * 2
-            const TOTAL_COST = nativeFee // + BRIDGE_FEE + MIN_GAS_TO_TRANSFER * GAS_MULTIPLY
+
+            const TOTAL_COST = nativeFee
             if (Zerius.isDEV) console.log('TOTAL_COST', TOTAL_COST)
 
-            //////////// CHECK BALANCE ////////////
             const userBalance = await provider.getBalance(sender)
-            // console.log('userBalance', userBalance)
             if (userBalance < TOTAL_COST) {
                 if (Zerius.isDEV) console.log('Not enough funds to send')
                 return {
@@ -259,7 +250,6 @@ export default class Evm {
                 }
             }
 
-            //////////// BRIDGE ////////////
             let bridgeOptions = {
                 value: TOTAL_COST,
                 gasLimit: BigInt(0)
@@ -279,7 +269,6 @@ export default class Evm {
             bridgeOptions.gasLimit = estimatedGasLimit
             if (Zerius.isDEV) console.log('estimatedGasLimit', estimatedGasLimit)
 
-            // Sending the transaction
             const transaction = await contract.sendFrom(
                 sender,
                 _dstChainId,
@@ -315,28 +304,26 @@ export default class Evm {
     }
 
     static async isTransactionConfirmed(provider: any, txHash: string, requiredConfirmations = 6) {
-        const receipt = await provider.getTransactionReceipt(txHash);
-        return receipt && receipt.confirmations >= requiredConfirmations && receipt.status === 1;
+        const receipt = await provider.getTransactionReceipt(txHash)
+        return receipt && receipt.confirmations >= requiredConfirmations && receipt.status === 1
     }
 
     static async waitForConfirmation(provider: any, txHash: string, retries = 3, delay = 5000) {
-        let attempts = 0;
+        let attempts = 0
 
         const attemptCheck = async (resolve: (arg0: boolean) => any, reject: (arg0: Error) => any) => {
             if (attempts >= retries) {
-                return reject(new Error('Transaction not confirmed after maximum retries.'));
+                return reject(new Error('Transaction not confirmed after maximum retries.'))
             }
 
-            const confirmed = await this.isTransactionConfirmed(provider, txHash);
-            if (confirmed) {
-                return resolve(true);
-            }
+            const confirmed = await this.isTransactionConfirmed(provider, txHash)
+            if (confirmed) return resolve(true)
 
-            attempts += 1;
-            setTimeout(() => attemptCheck(resolve, reject), delay);
-        };
+            attempts += 1
+            setTimeout(() => attemptCheck(resolve, reject), delay)
+        }
 
-        return new Promise(attemptCheck);
+        return new Promise(attemptCheck)
     }
 
     static async getUri(chainId: number, tokenId: number, hash: string) {
@@ -366,7 +353,6 @@ export default class Evm {
             const contract = new ethers.Contract(contractAddress, ABI, signer)
 
             const id = Number(await contract.tokenOfOwnerByIndex(owner, tokenId))
-            // const uri = await contract.tokenURI(id)
 
             return Zerius.getIpfsUri(id)
         } catch (error) {
@@ -385,7 +371,6 @@ export default class Evm {
                 try {
                     return await fetchFunction()
                 } catch (error) {
-                    // console.error('Error:', error)
                     await new Promise(resolve => setTimeout(resolve, delay))
                     retries++
                 }
@@ -403,24 +388,18 @@ export default class Evm {
             const ITEMS = []
 
             for (const [chainId, contractAddress] of Object.entries(Zerius.contracts)) {
-                // const provider = new ethers.JsonRpcProvider(Zerius.getChainById(chainId).rpcUrl)
-                // const signer = await provider.getSigner()
-                // const owner = await signer.getAddress()
                 try {
                     // REMOVE WHEN CORS FIX
                     if (Number(this.connectedWallet.provider.chainId).toString() === chainId) {
                         // if (Zerius.isDEV) console.log('COLLECTION', chainId, contractAddress)
-
                         const contract = new ethers.Contract(contractAddress, ABI, signer)
 
                         const tokensCount = Number(await contract.balanceOf(owner))
-                        // if (Zerius.isDEV) console.log('COLLECTION count', tokensCount)
 
                         const chainItems = []
                         for (let i = 0; i < tokensCount; i++) {
                             const fetchFunction = async () => {
                                 const id = Number(await contract.tokenOfOwnerByIndex(owner, i))
-                                // const uri = await contract.tokenURI(id)
                                 const uri = Zerius.getIpfsUri(id)
 
                                 return { chainId, id, uri }
@@ -433,9 +412,7 @@ export default class Evm {
                         if (chainItems.length) ITEMS.push(chainItems)
                     }
                 } catch (error) {
-                    if (Zerius.isDEV) {
-                        // console.error('Error fetch:', chainId, error)
-                    }
+                    // if (Zerius.isDEV) console.error('Error fetch:', chainId, error)
                 }
             }
 

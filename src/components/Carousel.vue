@@ -2,10 +2,6 @@
     <div class="carousel__wrapper">
         <Carousel :itemsToShow="5" :wrapAround="true" :transition="500" :disable-user-scroll="true" ref="carouselRef"
             snapAlign="center" :breakpoints="{
-                // 600: { itemsToShow: 1 },
-                // 900: { itemsToShow: 4 },
-                // 1200: { itemsToShow: 3 },
-                // 1100: { itemsToShow: 4 },
                 1430: { itemsToShow: 5 }
             }">
             <Slide v-for="(image, index) in images" :key="index">
@@ -55,8 +51,6 @@ export default {
         let autoScrollInterval = null
 
         const fetchImagesFromFolder = () => {
-            // const imageContext = import.meta.glob('@/assets/img/carousel/*.{png,jpg,jpeg,gif,svg}')
-            // images.value = Object.values(imageContext).map(path => path.name)
             images.value = carouselImages.map(name => `/img/carousel/${name}`)
             shuffleImages()
         }

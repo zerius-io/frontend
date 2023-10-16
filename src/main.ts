@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 
 import { createVfm } from 'vue-final-modal'
-import Toast, { useToast } from "vue-toastification"
+import Toast from "vue-toastification"
 
 import 'vue-final-modal/style.css'
 import "vue-toastification/dist/index.css"
@@ -21,7 +21,6 @@ app.use(Toast, {
     timeout: 8000,
     maxToasts: 4,
     newestOnTop: true,
-    // closeButton: false,
     closeOnClick: false,
     hideProgressBar: true,
     icon: false,

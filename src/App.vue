@@ -33,9 +33,6 @@ $small: 700px;
     url('/fonts/SpaceGrotesk-Bold.ttf') format('truetype');
 }
 
-// $small: 300px;
-// $medium: 900px;
-
 body {
   margin: 0;
   padding: 0;
@@ -58,7 +55,6 @@ body {
   &::-webkit-scrollbar-thumb {
     background: rgba(179, 179, 179, 0.9);
     border-radius: .85rem;
-    // outline: 1px solid slategrey;
   }
 }
 
@@ -95,12 +91,10 @@ h1 {
 
   color: var(--dark, #080808);
   text-align: center;
-  // font-family: Space Grotesk;
   font-size: 2.25rem;
   font-style: bold;
   font-weight: 500;
   line-height: 120%;
-  /* 2.7rem */
 }
 
 a {
@@ -114,7 +108,6 @@ button,
 
   &:not(:disabled):hover {
     transform: scale(1.1);
-    // background-color: var(--blue, #2C6EFF);
   }
 
   &:active {
@@ -127,7 +120,6 @@ button,
 
     &:hover {
       transform: none;
-      /* Remove hover effect when disabled */
     }
   }
 }
@@ -137,9 +129,8 @@ button,
 select,
 .custom-select {
   width: 11.1875rem;
-  // height: 3rem;
 
-  cursor: pointer;
+  text-align: center;
 
   font-size: 1.125rem;
   font-style: normal;
@@ -147,7 +138,7 @@ select,
   line-height: 120%;
 
   color: var(--blue, #2C6EFF);
-  text-align: center;
+  cursor: pointer;
 
   border-radius: 0.75rem;
   border: 1px solid var(--blue, #2C6EFF);
@@ -248,7 +239,6 @@ select {
     padding: 0.375rem 0.5rem;
 
     height: 1.2rem;
-    // line-height: 1.3rem;
   }
 
   .select__selected {

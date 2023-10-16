@@ -29,24 +29,15 @@ export default {
 
         const filteredOptions = computed(() => {
             const walletSelectedChain = store.state.wallet.selectedChain?.id || null
-            // console.log('ISO', props.isolate, selected.value.id, walletSelectedChain)
             if (props.isolate) {
                 let block = []
 
-                if (walletSelectedChain === 7777777) {
-                    // console.log('ISO 1', props.isolate)
-                    block = [56, 43114]
-                }
+                if (walletSelectedChain === 7777777) block = [56, 43114]
+                if ([56, 43114].includes(walletSelectedChain)) block = [7777777]
 
-                if ([56, 43114].includes(walletSelectedChain)) {
-                    // console.log('ISO 2', props.isolate)
-                    block = [7777777]
-                }
-
-                // console.log('ISO 3', props.isolate)
                 return props.options.filter((option) => !block.includes(option.id))
             }
-            // return props.options.filter((option) => option.id !== selected.value.id)
+
             return props.options
         })
 
@@ -97,10 +88,8 @@ export default {
 
                 const retryLogic = () => {
                     if (Evm.isWalletConnected || retryCount.value >= 10) {
-                        if (!Evm.isWalletConnected) {
-                            // console.log('Failed after 10 retries.')
-                            return
-                        }
+                        if (!Evm.isWalletConnected) return
+
                         executeLogic()
                     } else {
                         retryCount.value++;
@@ -157,20 +146,18 @@ export default {
 
 <style lang="scss">
 .select {
+    position: relative;
+
     margin: 0 1.5rem;
 
-    position: relative;
-    text-align: left;
-    outline: none;
-
-    // display: flex;
     width: 11.25rem;
-    line-height: 3rem;
 
     align-items: center;
     gap: 1rem;
 
     color: var(--blue, #2C6EFF);
+    text-align: left;
+    line-height: 3rem;
     font-weight: 500;
 
     z-index: 10;
@@ -180,6 +167,8 @@ export default {
     background: rgba(255, 255, 255, 0.50);
     box-shadow: 0px 0px 8px 0px rgba(205, 218, 252, 0.20);
     backdrop-filter: blur(3px);
+
+    outline: none;
 
     &__hide {
         display: none;
@@ -198,25 +187,20 @@ export default {
 
         transition: .3s;
 
-        // &:hover {
-        //     transform: scale(1.05);
-        // }
-
         &:after {
             content: "";
             position: absolute;
             top: 50%;
-            /* Adjust as needed */
             right: 1rem;
+
             width: 0;
             height: 0;
+
             border-style: solid;
             border-width: 5px 5px 0 5px;
-
             border-color: var(--blue, #2C6EFF) transparent transparent transparent;
+
             transform: translateY(-50%);
-
-
             transition: .3s;
         }
 
@@ -258,14 +242,11 @@ export default {
             width: 5px;
         }
 
-        &::-webkit-scrollbar-track {
-            // box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
-        }
+        &::-webkit-scrollbar-track {}
 
         &::-webkit-scrollbar-thumb {
             background: rgba(179, 179, 179, 0.9);
             border-radius: .85rem;
-            // outline: 1px solid slategrey;
         }
 
         position: absolute;

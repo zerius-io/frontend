@@ -156,9 +156,6 @@ const bridgeOk = computed(() => res.value?.result)
 
             width: 12.5rem;
             height: 3rem;
-            // padding: 0 8px;
-            // border: 1px solid;
-            // border-radius: 0.5rem;
         }
     }
 }

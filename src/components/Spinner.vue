@@ -14,8 +14,6 @@ $ring-size: 1.6rem;
 .lds-ring {
     display: inline-block;
     position: relative;
-    // width: $size;
-    // height: $size;
 }
 
 .lds-ring div {
