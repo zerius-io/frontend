@@ -216,11 +216,25 @@ select {
   gap: 0.625rem;
 
   font-size: 12px;
-  border-radius: 0.5rem 0.125rem;
+  border-radius: 0.55rem 0.2rem;
   background: var(--blue, #2C6EFF);
 }
 
+.new-tip {
+  position: inherit;
+  display: inline-block;
+
+  top: -8px;
+  right: -7px;
+
+  line-height: 1rem;
+
+  @extend .soon-tip;
+  background: var(--red, #FF2C6E);
+}
+
 @media screen and (max-width: $small) {
+
   button,
   .select,
   .select__selected {

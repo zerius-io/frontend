@@ -30,6 +30,13 @@ const chains: ChainType[] = [
         icon: 'arbitrum.svg'
     },
     {
+        id: 534352,
+        token: 'ETH',
+        label: 'Scroll',
+        rpcUrl: 'https://scroll.blockpi.network/v1/rpc/public',
+        icon: 'scroll.png'
+    },
+    {
         id: 10,
         token: 'ETH',
         label: 'Optimism',
@@ -96,6 +103,7 @@ const lzChains: Record<number, number> = {
     56: 102, // BNB Chain
     43114: 106, // Avalanche
     7777777: 195, // Zora
+    534352: 214,// Scroll
     // Testnets
     80001: 10109, // Polygon Mumbai
     84531: 10160 // Base Goerli
@@ -111,6 +119,7 @@ const contracts: Record<number, string> = {
     56: '0x250c34D06857b9C0A036d44F86d2c1Abe514B3Da', // BNB Chain
     43114: '0x178608fFe2Cca5d36f3Fc6e69426c4D3A5A74A41', // Avalanche
     7777777: '0x178608fFe2Cca5d36f3Fc6e69426c4D3A5A74A41', // Zora
+    534352: '0xEB22C3e221080eAD305CAE5f37F0753970d973Cd', // Scroll
     // Testnets
     80001: '0x75023ffe91dd4d67D0Ce5a4b0C376aa22708f1Fb', // Polygon Mumbai
     84531: '0x23e196CC4652bc272F80c04362a30b3db87F2cB9'  // Base Goerli
@@ -125,6 +134,7 @@ const explorers: Record<number, string> = {
     137: 'https://polygonscan.com',// Polygon
     56: 'https://bscscan.com', // BNB Chain
     43114: 'https://snowtrace.io', // Avalanche
+    534352: 'https://scrollscan.com', // Scroll
     7777777: 'https://explorer.zora.energy/', // Zora
     80001: 'https://mumbai.polygonscan.com/', // Polygon Mumbai
     84531: 'https://goerli.basescan.org/'  // Base Goerli
@@ -133,12 +143,21 @@ const explorers: Record<number, string> = {
 const ipfs: Record<string, string> = {
     '1-500000': 'https://zerius.mypinata.cloud/ipfs/QmX7mjWT8wSe2kehgnGJbsyokwfeCF3oiNDp5HKhkmFdwK/', // Ethereum
     '1000001-1500000': 'https://zerius.mypinata.cloud/ipfs/QmNWKAgfo1BqMhWLK4gFMtmnhoLxQtq7rHefKkYUZRu1WR/',// Arbitrum
-    '1500001-2000000': 'https://zerius.mypinata.cloud/ipfs/QmduZF1HCVTwdu4wg6gPDC9zPKTp1Uh8ueuFwg98bW2ZXL/',
-    '2000001-2500000': 'https://zerius.mypinata.cloud/ipfs/QmaLg3ZY5B3dkG2t2FBRHucg6jS2Puuc52eEN6UyuR4cbM/',
-    '2500001-3000000': 'https://zerius.mypinata.cloud/ipfs/QmSugq1BqHGSQpjvepAbzVjN65MYt4dCJP1RaTpiF3jYwu/',
-    '3000001-3500000': 'https://zerius.mypinata.cloud/ipfs/QmPxCcPqe8Td6ZM9qwFQoEG73XYoP4soghSCPUM7c8R5EM/',
-    '3500001-4000000': 'https://zerius.mypinata.cloud/ipfs/QmU1QQ6ZyNTXkswH3iZ71ZWyjiPtcEFiE9xqtrgpwi7ugF/',
-    '4000001-4500000': 'https://zerius.mypinata.cloud/ipfs/QmbfPtdUTT28P5NLzcWVhQT36vtCUr6wYaZ2cqWcYGpPHu/',
+    '1500001-2000000': 'https://zerius.mypinata.cloud/ipfs/QmduZF1HCVTwdu4wg6gPDC9zPKTp1Uh8ueuFwg98bW2ZXL/', // Optimsim
+    '2000001-2500000': 'https://zerius.mypinata.cloud/ipfs/QmaLg3ZY5B3dkG2t2FBRHucg6jS2Puuc52eEN6UyuR4cbM/', // Polygon
+    '2500001-3000000': 'https://zerius.mypinata.cloud/ipfs/QmSugq1BqHGSQpjvepAbzVjN65MYt4dCJP1RaTpiF3jYwu/', // BSC
+    '3000001-3500000': 'https://zerius.mypinata.cloud/ipfs/QmPxCcPqe8Td6ZM9qwFQoEG73XYoP4soghSCPUM7c8R5EM/', // Avalanche
+    '3500001-4000000': 'https://zerius.mypinata.cloud/ipfs/QmU1QQ6ZyNTXkswH3iZ71ZWyjiPtcEFiE9xqtrgpwi7ugF/', // Base
+    '4000001-4500000': 'https://zerius.mypinata.cloud/ipfs/QmbfPtdUTT28P5NLzcWVhQT36vtCUr6wYaZ2cqWcYGpPHu/', // Zora
+    '4500001-4510000': 'https://zerius.mypinata.cloud/ipfs/QmSLVADeLBE4RNXfGZF7oweKL1oacGFxPqKeJnn7iMBJWU/' // Scroll
+}
+
+const blockers: Record<number, number[]> = {
+    7777777: [56, 43114, 534352],
+    56: [7777777],
+    43114: [7777777],
+    534352: [7777777, 8453],
+    8453: [534352]
 }
 
 export default class Zerius {
@@ -188,6 +207,10 @@ export default class Zerius {
         }
 
         return ''
+    }
+
+    static chainsBlock(chainId: number): number[] {
+        return blockers[chainId] || []
     }
 }
 

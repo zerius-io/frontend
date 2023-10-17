@@ -30,11 +30,7 @@ export default {
         const filteredOptions = computed(() => {
             const walletSelectedChain = store.state.wallet.selectedChain?.id || null
             if (props.isolate) {
-                let block = []
-
-                if (walletSelectedChain === 7777777) block = [56, 43114]
-                if ([56, 43114].includes(walletSelectedChain)) block = [7777777]
-
+                const block = Zerius.chainsBlock(walletSelectedChain)
                 return props.options.filter((option) => !block.includes(option.id))
             }
 
@@ -139,6 +135,7 @@ export default {
             <div v-for="(option, i) of filteredOptions" :key="i" @click="selectOption(option)" class="select__items-item">
                 <img :src="getImageSrc(option)" class="select__icon" />
                 {{ option.label }}
+                <span v-if="option.label === 'Scroll'" class="new-tip">new</span>
             </div>
         </div>
     </div>
@@ -265,6 +262,8 @@ export default {
         border-top: none;
 
         &-item {
+            position: relative;
+
             display: flex;
             align-items: center;
 
