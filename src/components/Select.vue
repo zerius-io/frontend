@@ -111,13 +111,18 @@ export default {
             }
         })
 
+        const newLabel = (id: number) => {
+            return [324, 534352].includes(id)
+        }
+
         return {
             selected,
             open,
             filteredOptions,
             selectOption,
             getImageSrc,
-            selectRef
+            selectRef,
+            newLabel
         }
     }
 }
@@ -135,7 +140,7 @@ export default {
             <div v-for="(option, i) of filteredOptions" :key="i" @click="selectOption(option)" class="select__items-item">
                 <img :src="getImageSrc(option)" class="select__icon" />
                 {{ option.label }}
-                <span v-if="option.label === 'Scroll'" class="new-tip">new</span>
+                <span v-if="newLabel(option.id)" class="new-tip">new</span>
             </div>
         </div>
     </div>

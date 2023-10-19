@@ -16,18 +16,18 @@ const chains: ChainType[] = [
         label: 'Ethereum',
         rpcUrl: 'https://rpc.ankr.com/eth',
     },
-    // {
-    //     id: 324,
-    //     token: 'ETH',
-    //     label: 'zkSync',
-    //     rpcUrl: 'https://mainnet.era.zksync.io'
-    // },
     {
         id: 42161,
         token: 'ETH',
         label: 'Arbitrum One',
         rpcUrl: 'https://arb1.arbitrum.io/rpc',
         icon: 'arbitrum.svg'
+    },
+    {
+        id: 324,
+        token: 'ETH',
+        label: 'zkSync',
+        rpcUrl: 'https://mainnet.era.zksync.io'
     },
     {
         id: 534352,
@@ -111,7 +111,7 @@ const lzChains: Record<number, number> = {
 
 const contracts: Record<number, string> = {
     1: '0x178608fFe2Cca5d36f3Fc6e69426c4D3A5A74A41', // Ethereum
-    324: '', // zkSync Era
+    324: '0x7da50bd0fb3c2e868069d9271a2aeb7ed943c2d6', // zkSync Era
     42161: '0x250c34D06857b9C0A036d44F86d2c1Abe514B3Da', // Arbitrum
     10: '0x178608fFe2Cca5d36f3Fc6e69426c4D3A5A74A41',// Optimism
     8453: '0x178608fFe2Cca5d36f3Fc6e69426c4D3A5A74A41', // Base
@@ -142,6 +142,7 @@ const explorers: Record<number, string> = {
 
 const ipfs: Record<string, string> = {
     '1-500000': 'https://zerius.mypinata.cloud/ipfs/QmX7mjWT8wSe2kehgnGJbsyokwfeCF3oiNDp5HKhkmFdwK/', // Ethereum
+    '500001-1000000': 'https://zerius.mypinata.cloud/ipfs/QmXZxnwDscfX2cELzuWsbyDYujzaTv9pKWFnzGNokWoQ26/', // zkSync Era
     '1000001-1500000': 'https://zerius.mypinata.cloud/ipfs/QmNWKAgfo1BqMhWLK4gFMtmnhoLxQtq7rHefKkYUZRu1WR/',// Arbitrum
     '1500001-2000000': 'https://zerius.mypinata.cloud/ipfs/QmduZF1HCVTwdu4wg6gPDC9zPKTp1Uh8ueuFwg98bW2ZXL/', // Optimsim
     '2000001-2500000': 'https://zerius.mypinata.cloud/ipfs/QmaLg3ZY5B3dkG2t2FBRHucg6jS2Puuc52eEN6UyuR4cbM/', // Polygon
@@ -153,11 +154,12 @@ const ipfs: Record<string, string> = {
 }
 
 const blockers: Record<number, number[]> = {
-    7777777: [56, 43114, 534352],
-    56: [7777777],
-    43114: [7777777],
-    534352: [7777777, 8453],
-    8453: [534352]
+    7777777: [56, 43114, 534352], // Zora
+    56: [7777777], // BSC
+    43114: [7777777], // Avalanche
+    534352: [7777777, 8453], // Scroll
+    8453: [534352], // Base
+    324: [7777777, 534352]
 }
 
 export default class Zerius {
