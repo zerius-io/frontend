@@ -140,7 +140,7 @@ export default {
             <div v-for="(option, i) of filteredOptions" :key="i" @click="selectOption(option)" class="select__items-item">
                 <img :src="getImageSrc(option)" class="select__icon" />
                 {{ option.label }}
-                <span v-if="newLabel(option.id)" class="new-tip">new</span>
+<!--                <span v-if="newLabel(option.id)" class="new-tip">new</span>-->
             </div>
         </div>
     </div>
