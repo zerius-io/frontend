@@ -159,7 +159,7 @@ const blockers: Record<number, number[]> = {
     43114: [7777777], // Avalanche
     534352: [7777777, 8453], // Scroll
     8453: [534352], // Base
-    324: [7777777, 534352]
+    324: [7777777, 534352] // zkSync Era
 }
 
 export default class Zerius {

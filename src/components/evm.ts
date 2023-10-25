@@ -163,7 +163,7 @@ export default class Evm {
 
             if (toast) toast("Minting..", { id: selectedChain?.id, hash: txResponse?.hash })
 
-            const receipt = await txResponse.wait()
+            const receipt = await txResponse.wait(null, 60000)
 
             if (Zerius.isDEV) {
                 console.log('Mint confirmed:', receipt)
@@ -171,7 +171,7 @@ export default class Evm {
 
             return {
                 result: receipt.status === 1,
-                msg: receipt.status === 1 ? 'Successful Mint' : 'Mint Failed',
+                msg: receipt.status === 1 ? 'Successful Mint' : (receipt.status == null ? 'Mint not confirmed' : 'Mint Failed'),
                 receipt
             }
         } catch (error) {
@@ -186,9 +186,6 @@ export default class Evm {
 
     static async bridge(tokenId: number, chainId: number, toChain: number, toast?: (message: string, data?: any) => void): Promise<TxResult> {
         const LZ_VERSION = 1
-        const GAS_MULTIPLY = BigInt(3)
-
-        const abiCoder = ethers.AbiCoder.defaultAbiCoder()
 
         try {
             if (Zerius.isDEV) console.log('BRIDGE', 'id', tokenId, 'from chain', chainId, 'to', toChain)
@@ -283,12 +280,12 @@ export default class Evm {
 
             if (toast) toast("Sending..", { id: selectedChain?.id, hash: transaction?.hash })
 
-            const receipt = await transaction.wait()
+            const receipt = await transaction.wait(null, 60000)
 
             if (Zerius.isDEV) console.log('Send successful:', receipt)
             return {
                 result: receipt.status === 1,
-                msg: receipt.status === 1 ? 'Successful send' : 'Send failed',
+                msg: receipt.status === 1 ? 'Successful send' : (receipt.status == null ? 'Send not confirmed' : 'Send failed'),
                 receipt
             }
         } catch (error) {
@@ -424,6 +421,21 @@ export default class Evm {
             }
 
             return []
+        }
+    }
+
+    static async getReceipt(txHash: string): Promise<any> {
+        try {
+            const web3 = window.ethereum
+            const provider = new ethers.BrowserProvider(web3)
+
+            const receipt = await provider.getTransactionReceipt(txHash)
+            return receipt
+        } catch (error) {
+            if (Zerius.isDEV) {
+                console.error('Failed to fetch transaction receipt', error)
+            }
+            return null
         }
     }
 }

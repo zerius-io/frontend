@@ -73,13 +73,18 @@ async function mint() {
     showToast(msg, { id: chainId, hash: receipt?.hash })
 
     if (result) {
-        let itemId = (chainId != 137) ?
-            receipt?.logs?.[0]?.topics?.[3] : receipt?.logs?.[1].topics?.[3]
+        let itemId = extractItemId(receipt, chainId)
 
-        itemId = BigInt(itemId) || null
+        if (!itemId) {
+            itemId = await waitForItemId(receipt.hash, chainId, 5)
+        }
 
         if (itemId) {
-            item = { chainId: chainId, id: Number(itemId), uri: Zerius.getIpfsUri(itemId) }
+            item = {
+                chainId: chainId,
+                id: Number(itemId),
+                uri: Zerius.getIpfsUri(Number(itemId))
+            }
 
             patchOptions({
                 attrs: {
@@ -97,5 +102,32 @@ async function mint() {
             store.commit('wallet/setCollection', true)
         }
     }
+}
+
+function extractItemId(receipt: { logs: { topics: any[] }[] }, chainId: number) {
+    let itemId = (chainId != 137) ?
+        receipt?.logs?.[0]?.topics?.[3] : receipt?.logs?.[1]?.topics?.[3]
+
+    return itemId ? BigInt(itemId) : null
+}
+
+async function waitForItemId(txHash: string, chainId: number, retries: number): Promise<bigint> {
+    return new Promise(async (resolve) => {
+        if (retries <= 0) {
+            resolve(null)
+            return
+        }
+
+        setTimeout(async () => {
+            const receipt = await Evm.getReceipt(txHash)
+            const itemId = extractItemId(receipt, chainId)
+
+            if (itemId) {
+                resolve(itemId)
+            } else {
+                resolve(await waitForItemId(txHash, chainId, retries - 1))
+            }
+        }, 5000)
+    })
 }
 </script>
