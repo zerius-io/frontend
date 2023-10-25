@@ -30,11 +30,17 @@ const chains: ChainType[] = [
         rpcUrl: 'https://mainnet.era.zksync.io'
     },
     {
-        id: 534352,
+        id: 59144,
         token: 'ETH',
-        label: 'Scroll',
-        rpcUrl: 'https://scroll.blockpi.network/v1/rpc/public',
-        icon: 'scroll.png'
+        label: 'Linea',
+        rpcUrl: 'https://linea.drpc.org'
+    },
+    {
+        id: 42170,
+        token: 'ETH',
+        label: 'Nova',
+        rpcUrl: 'https://arbitrum-nova.drpc.org',
+        icon: 'nova.svg',
     },
     {
         id: 10,
@@ -72,7 +78,14 @@ const chains: ChainType[] = [
         token: 'ETH',
         label: 'Zora',
         rpcUrl: 'https://rpc.zora.energy'
-    }
+    },
+    {
+        id: 534352,
+        token: 'ETH',
+        label: 'Scroll',
+        rpcUrl: 'https://scroll.blockpi.network/v1/rpc/public',
+        icon: 'scroll.png'
+    },
 ]
 if (DEV) {
     chains.unshift(
@@ -104,6 +117,8 @@ const lzChains: Record<number, number> = {
     43114: 106, // Avalanche
     7777777: 195, // Zora
     534352: 214,// Scroll
+    42170: 175, // Arbitrum Nova
+    59144: 183, // Linea
     // Testnets
     80001: 10109, // Polygon Mumbai
     84531: 10160 // Base Goerli
@@ -120,6 +135,8 @@ const contracts: Record<number, string> = {
     43114: '0x178608fFe2Cca5d36f3Fc6e69426c4D3A5A74A41', // Avalanche
     7777777: '0x178608fFe2Cca5d36f3Fc6e69426c4D3A5A74A41', // Zora
     534352: '0xEB22C3e221080eAD305CAE5f37F0753970d973Cd', // Scroll
+    42170: '0x5188368a92B49F30f4Cf9bEF64635bCf8459c7A7', // Arbitrum Nova
+    59144: '0x5188368a92B49F30f4Cf9bEF64635bCf8459c7A7', // Linea
     // Testnets
     80001: '0x75023ffe91dd4d67D0Ce5a4b0C376aa22708f1Fb', // Polygon Mumbai
     84531: '0x23e196CC4652bc272F80c04362a30b3db87F2cB9'  // Base Goerli
@@ -136,6 +153,8 @@ const explorers: Record<number, string> = {
     43114: 'https://snowtrace.io', // Avalanche
     534352: 'https://scrollscan.com', // Scroll
     7777777: 'https://explorer.zora.energy/', // Zora
+    42170: 'https://nova.arbiscan.io/', // Arbitrum Nova
+    59144: 'https://lineascan.build/', // Linea
     80001: 'https://mumbai.polygonscan.com/', // Polygon Mumbai
     84531: 'https://goerli.basescan.org/'  // Base Goerli
 }
@@ -150,7 +169,9 @@ const ipfs: Record<string, string> = {
     '3000001-3500000': 'https://zerius.mypinata.cloud/ipfs/QmPxCcPqe8Td6ZM9qwFQoEG73XYoP4soghSCPUM7c8R5EM/', // Avalanche
     '3500001-4000000': 'https://zerius.mypinata.cloud/ipfs/QmU1QQ6ZyNTXkswH3iZ71ZWyjiPtcEFiE9xqtrgpwi7ugF/', // Base
     '4000001-4500000': 'https://zerius.mypinata.cloud/ipfs/QmbfPtdUTT28P5NLzcWVhQT36vtCUr6wYaZ2cqWcYGpPHu/', // Zora
-    '4500001-4510000': 'https://zerius.mypinata.cloud/ipfs/QmSLVADeLBE4RNXfGZF7oweKL1oacGFxPqKeJnn7iMBJWU/' // Scroll
+    '4500001-4510000': 'https://zerius.mypinata.cloud/ipfs/QmSLVADeLBE4RNXfGZF7oweKL1oacGFxPqKeJnn7iMBJWU/', // Scroll
+    '5000001-5010000': 'https://zerius.mypinata.cloud/ipfs/QmctFRSdyPAe8Zc63TraPvgMYgbkNHm4UjVxnaMEmUaoiP/', // Linea
+    '9500001-9510000': 'https://zerius.mypinata.cloud/ipfs/QmXCsehRXzmRJPzfvyr5iL9YyNWoNhm6WrYojfh4oNEQsp/', // Arbitrum Nova
 }
 
 const blockers: Record<number, number[]> = {
@@ -159,7 +180,9 @@ const blockers: Record<number, number[]> = {
     43114: [7777777], // Avalanche
     534352: [7777777, 8453], // Scroll
     8453: [534352], // Base
-    324: [7777777, 534352]
+    324: [7777777, 534352], //zkSync
+    59144: [534352, 7777777, 42170],// Linea
+    42170: [7777777, 534352, 59144],// Arbitrum Nova
 }
 
 export default class Zerius {
