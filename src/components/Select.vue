@@ -112,7 +112,7 @@ export default {
         })
 
         const newLabel = (id: number) => {
-            return [].includes(id) // 324, 534352
+            return [59144, 42170].includes(id) // 324, 534352
         }
 
         return {
