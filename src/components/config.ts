@@ -171,7 +171,7 @@ const ipfs: Record<string, string> = {
     '4000001-4500000': 'https://zerius.mypinata.cloud/ipfs/QmbfPtdUTT28P5NLzcWVhQT36vtCUr6wYaZ2cqWcYGpPHu/', // Zora
     '4500001-4510000': 'https://zerius.mypinata.cloud/ipfs/QmSLVADeLBE4RNXfGZF7oweKL1oacGFxPqKeJnn7iMBJWU/', // Scroll
     '5000001-5010000': 'https://zerius.mypinata.cloud/ipfs/QmctFRSdyPAe8Zc63TraPvgMYgbkNHm4UjVxnaMEmUaoiP/', // Linea
-    '9500001-9510000': 'https://zerius.mypinata.cloud/ipfs/QmXCsehRXzmRJPzfvyr5iL9YyNWoNhm6WrYojfh4oNEQsp/', // Arbitrum Nova
+    '9500001-9510000': 'https://zerius.mypinata.cloud/ipfs/QmUMCWhMmTjsKPRP8JpcPsstrTw3ujPDfbsw7m64C4ewQM/', // Arbitrum Nova
 }
 
 const blockers: Record<number, number[]> = {
