@@ -6,9 +6,7 @@ import { useToast } from 'vue-toastification'
 
 import store from '@/store'
 
-import ok_img from '/img/ok.svg'
-import error_img from '/img/error.svg'
-
+import WalletControl, { walletType, starknetWalletType } from './walletControl'
 import Evm from './evm'
 import Zerius from './config'
 
@@ -18,7 +16,17 @@ import Collectable from './Collectable.vue'
 import Spinner from '../components/Spinner.vue'
 import Toast from '../components/Toast.vue'
 
+// IMG
+import ok_img from '/img/ok.svg'
+import error_img from '/img/error.svg'
+
+import icon_metamask from '/img/wallets/metamask.png'
+import icon_argent from '/img/wallets/argent.png'
+import icon_braavos from '/img/wallets/braavos.png'
+
+
 const { title, collectable } = defineProps<{
+    walletConnect?: boolean,
     title?: string,
     collectable?: any,
     close: any
@@ -71,40 +79,82 @@ const mintCase = computed(() => title === 'Yay, congratulations!')
 const bridgeCase = computed(() => title === 'Send')
 const afterBridge = computed(() => res.value !== null)
 const bridgeOk = computed(() => res.value?.result)
+
+
+// Wallet Connect
+const isEvmWalletConnected = computed(() => Evm.isWalletConnected)
+const evmConnectedWallet = computed(() => Evm.connectedWallet)
+
+const formatAddress = (address) => Evm.formatAddress(address)
+
+async function connect(type: walletType, starknetWalletType?: starknetWalletType) {
+    if (type === 'evm') emit('confirm')
+
+    await WalletControl.connect(type)
+}
 </script>
 
 <template>
     <VueFinalModal class="modal flex" content-class="modal-content" overlay-transition="vfm-fade"
         content-transition="vfm-fade">
-        <h1>{{ !res ? title : bridgeOk ? 'Success!' : 'Something went wrong :(' }}</h1>
+        <div v-if="!walletConnect" class="">
+            <h1>{{ !res ? title : bridgeOk ? 'Success!' : 'Something went wrong :(' }}</h1>
 
-        <custom-select v-if="bridgeCase" ref="selectedChainRef" :options="Zerius.chains" v-model="selectedChain"
-            :isolate="true" :initialChainId="collectable.chainId" />
+            <custom-select v-if="bridgeCase" ref="selectedChainRef" :options="Zerius.chains" v-model="selectedChain"
+                :isolate="true" :initialChainId="collectable.chainId" />
 
-        <div v-if="!afterBridge">
-            <Collectable :item="collectable" :clickable="false" />
+            <div v-if="!afterBridge">
+                <Collectable :item="collectable" :clickable="false" />
 
-            <button v-if="bridgeCase" @click="bridge" :disabled="bridging" class="button__full">
-                {{ bridging ? 'Sending' : 'Send' }}
-                <Spinner v-if="bridging" />
-            </button>
-        </div>
-        <div v-else>
-            <img class="status" alt="status" :src="bridgeOk ? ok_img : error_img" />
-
-            <div v-if="bridgeCase" class="flex" style="flex-direction: column;">
-                <button @click="close" :disabled="bridging" class="button__full">
-                    {{ bridging ? 'Sending' : 'Send again' }}
+                <button v-if="bridgeCase" @click="bridge" :disabled="bridging" class="button__full">
+                    {{ bridging ? 'Sending' : 'Send' }}
                     <Spinner v-if="bridging" />
+                </button>
+            </div>
+            <div v-else>
+                <img class="status" alt="status" :src="bridgeOk ? ok_img : error_img" />
+
+                <div v-if="bridgeCase" class="flex" style="flex-direction: column;">
+                    <button @click="close" :disabled="bridging" class="button__full">
+                        {{ bridging ? 'Sending' : 'Send again' }}
+                        <Spinner v-if="bridging" />
+                    </button>
+                </div>
+            </div>
+
+            <div v-if="mintCase">
+                <button class="button__full" @click="close">Mint again</button>
+            </div>
+
+            <slot />
+        </div>
+
+        <div v-else>
+            <h1 style="margin-bottom: 2rem">Connect Wallet</h1>
+
+            <h1>EVM</h1>
+            <div style="display: flex; flex-direction: column;">
+                <button class="button button__shadow flex" @click="connect('evm')">
+                    <img class="wallet-icon" alt="wallet" :src="icon_metamask" />
+                    {{ isEvmWalletConnected ? formatAddress(evmConnectedWallet?.accounts[0]?.address) : 'Connect MetaMask'
+                    }}
+                </button>
+            </div>
+
+            <h1>Starknet</h1>
+            <div style="display: flex; flex-direction: column;">
+                <button class="button button__shadow flex" @click="connect('starknet', 'argent')">
+                    <img class="wallet-icon" alt="wallet" :src="icon_argent" />
+                    Argent X
+                </button>
+
+                <button class="button button__shadow flex" @click="connect('starknet', 'braavos')">
+                    <img class="wallet-icon" alt="wallet" :src="icon_braavos" />
+                    Braavos
                 </button>
             </div>
         </div>
 
-        <div v-if="mintCase">
-            <button class="button__full" @click="close">Mint again</button>
-        </div>
-
-        <slot />
     </VueFinalModal>
 </template>
 
@@ -156,6 +206,13 @@ const bridgeOk = computed(() => res.value?.result)
 
             width: 12.5rem;
             height: 3rem;
+        }
+
+        .wallet-icon {
+            width: 2rem;
+            height: 2rem;
+
+            margin-right: 1rem;
         }
     }
 }

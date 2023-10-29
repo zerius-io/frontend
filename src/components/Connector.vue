@@ -1,16 +1,21 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, toRaw, watchEffect, watch } from 'vue'
 
+import { useModal, ModalsContainer } from 'vue-final-modal'
+
 import { init } from '@web3-onboard/vue'
 import { useOnboard } from '@web3-onboard/vue'
 import injectedModule from '@web3-onboard/injected-wallets'
 
 import store from '@/store'
 
+import WalletControl from './walletControl'
 import Evm from './evm'
 import Zerius from './config'
 
 import CustomSelect from "./Select.vue"
+import Modal from '@/components/Modal.vue'
+
 
 const injected = injectedModule()
 const web3Onboard = init({
@@ -30,7 +35,6 @@ const web3Onboard = init({
         autoConnectLastWallet: true
     }
 })
-
 const {
     connectWallet,
     connectedWallet,
@@ -63,16 +67,51 @@ watch(selectedChainRef, (newValue, oldValue) => {
 onMounted(() => {
     store.commit('wallet/setOverwriteChain', true)
 })
+
+// MODAL
+const modalOptions = {
+    walletConnect: true,
+    onConfirm() {
+        close()
+    }
+}
+
+const { open, close, patchOptions } = useModal({
+    component: Modal,
+    attrs: modalOptions,
+    slots: {},
+})
+
+patchOptions({
+    attrs: {
+        ...modalOptions,
+        close
+    }
+})
+
 </script>
 
 <template>
     <div style="display: flex; justify-content: space-between;">
         <custom-select ref="selectedChainRef" :options="chains" v-model="selectedChain" @change="setChainById" />
 
-        <button type="button" @click="toggleWallet" :class="connectedWallet ? 'button' : 'button__full'">
+        <button type="button" @click="open" :class="connectedWallet ? 'button' : 'button__full'">
             {{ connectedWallet ? formatAddress(connectedWallet?.accounts[0]?.address) : walletConnectRef ?
                 'Connecting...' : 'Connect wallet'
             }}
         </button>
+
+        <ModalsContainer />
     </div>
 </template>
+
+<style lang="scss">
+.modal-content {
+    margin: 0 auto;
+
+    button {
+        min-width: 16rem;
+        justify-content: center;
+    }
+}
+</style>

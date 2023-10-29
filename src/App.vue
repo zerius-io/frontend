@@ -189,6 +189,14 @@ option,
       letter-spacing: 0.45rem;
     }
   }
+
+  &__shadow {
+    color: black;
+    font-weight: 500;
+
+    border: unset;
+    box-shadow: 0px 0px 16px 0px rgba(105, 105, 105, 0.3);
+  }
 }
 
 select {

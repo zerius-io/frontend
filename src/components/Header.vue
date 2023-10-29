@@ -23,7 +23,7 @@
 <script setup>
 import { useRoute } from 'vue-router'
 
-import WalletConnector from './WalletConnector.vue'
+import WalletConnector from './Connector.vue'
 
 import logoImg from '/img/logo.svg'
 import logoTextImg from '/img/logo_text.png'

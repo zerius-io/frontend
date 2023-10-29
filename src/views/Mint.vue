@@ -1,17 +1,3 @@
-<template>
-    <h1 style="max-width: 60%;">Mint NFTs and send them via LayerZero</h1>
-
-    <Carousel />
-
-    <button @click="mint" :disabled="minting" class="button__full-uppercase"
-        style="margin-top: 1rem; width: 15rem; height: 3rem;">
-        {{ minting ? 'minting' : 'mint' }}
-        <Spinner v-if="minting" />
-    </button>
-
-    <Collection />
-</template>
-  
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useModal } from 'vue-final-modal'
@@ -34,6 +20,7 @@ const selectedChain = computed(() => store.getters['wallet/selectedChain'])
 let item = null
 
 const modalOptions = {
+    walletConnect: false,
     title: 'Yay, congratulations!',
     collectable: item,
     onConfirm() {
@@ -131,3 +118,17 @@ async function waitForItemId(txHash: string, chainId: number, retries: number): 
     })
 }
 </script>
+
+<template>
+    <h1 style="max-width: 60%;">Mint NFTs and send them via LayerZero</h1>
+
+    <Carousel />
+
+    <button @click="mint" :disabled="minting" class="button__full-uppercase"
+        style="margin-top: 1rem; width: 15rem; height: 3rem;">
+        {{ minting ? 'minting' : 'mint' }}
+        <Spinner v-if="minting" />
+    </button>
+
+    <Collection />
+</template>

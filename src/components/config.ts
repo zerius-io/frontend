@@ -1,4 +1,34 @@
-const DEV = import.meta.env.DEV // DEV=TRUE
+const DEV = import.meta.env.DEV
+
+export interface _CHAINS {
+    connect: {
+        id: number | string
+        token: string
+        label: string
+        rpcUrl: string
+        blockExplorerUrl: string
+    }
+    lzId: number
+    contract: string
+    ipfs: string[]
+    block: number[]
+}
+
+const CHAINS: _CHAINS[] = [
+    {
+        connect: {
+            id: 1,
+            token: 'ETH',
+            label: 'Ethereum',
+            rpcUrl: 'https://rpc.ankr.com/eth',
+            blockExplorerUrl: 'https://etherscan.io'
+        },
+        lzId: 101,
+        contract: '0x178608fFe2Cca5d36f3Fc6e69426c4D3A5A74A41',
+        ipfs: ['1-500000', 'https://zerius.mypinata.cloud/ipfs/QmX7mjWT8wSe2kehgnGJbsyokwfeCF3oiNDp5HKhkmFdwK/'],
+        block: []
+    }
+]
 
 export type ChainType = {
     id: any,
@@ -185,6 +215,11 @@ const blockers: Record<number, number[]> = {
     42170: [7777777, 534352, 59144],// Arbitrum Nova
 }
 
+const newChain: number[] = [
+    59144, 
+    42170
+]
+
 export default class Zerius {
     static get chains() {
         return chains
@@ -236,6 +271,10 @@ export default class Zerius {
 
     static chainsBlock(chainId: number): number[] {
         return blockers[chainId] || []
+    }
+
+    static newLabel(chainId: number): boolean {
+        return newChain.includes(chainId)
     }
 }
 

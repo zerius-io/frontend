@@ -112,7 +112,7 @@ export default {
         })
 
         const newLabel = (id: number) => {
-            return [59144, 42170].includes(id) // 324, 534352
+            return Zerius.newLabel(id)
         }
 
         return {
@@ -238,6 +238,8 @@ export default {
         width: 11.25rem;
 
         max-height: 15rem;
+
+        overflow-x:hidden;
         overflow-y: scroll;
 
         &::-webkit-scrollbar {

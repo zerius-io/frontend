@@ -48,11 +48,15 @@ const getChainIconSrc = (chainId: number) => {
   
 <style lang="scss">
 .collectables {
-    justify-content: center;
+    margin: 0 auto;
+
+    justify-content: center !important;
+
+    max-width: 78rem;
 }
 
 .collectable-item {
-    margin: 1rem;
+    margin: 1rem 1.5rem;
     width: 12.5rem;
 
     cursor: pointer;
