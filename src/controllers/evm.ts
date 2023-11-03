@@ -3,20 +3,22 @@ import { useOnboard } from '@web3-onboard/vue'
 
 import store from '@/store'
 
-import Zerius from './config'
+import Config from '@/controllers/config'
 
-import ABI from '@/assets/ABI.json'
+import ABI from '@/assets/ABI/evm.json'
 
 const DEV = import.meta.env.DEV
 
-interface TxResult {
+export interface TxResult {
     result: boolean;
     msg?: string;
     receipt?: any;
 }
 
 export default class Evm {
-    static wait = async (ms: number) => new Promise((r) => setTimeout(r, ms))
+    static get web3() {
+        return window.ethereum
+    }
 
     static get connectedWallet() {
         const { connectedWallet } = useOnboard()
@@ -24,7 +26,7 @@ export default class Evm {
     }
 
     static set connectedWallet(wallet: any) {
-        store.commit('wallet/setConnectedWallet', wallet)
+        store.commit('evm/setConnectedWallet', wallet)
     }
 
     static get isWalletConnected() {
@@ -32,19 +34,19 @@ export default class Evm {
     }
 
     static get walletConnectRef() {
-        return store.state.wallet.walletConnectRef
+        return store.state.evm.walletConnectRef
     }
 
     static set walletConnectRef(value: boolean) {
-        store.commit('wallet/setWalletConnectRef', value)
+        store.commit('evm/setWalletConnectRef', value)
     }
 
     static get selectedChain() {
-        return store.state.wallet.selectedChain
+        return store.state.evm.selectedChain
     }
 
     static get walletChainId(): number {
-        return (this.isWalletConnected) ? parseInt(window.ethereum.chainId) : null
+        return (this.isWalletConnected) ? parseInt(this.web3.chainId) : null
     }
 
     static async toggleWallet() {
@@ -53,13 +55,11 @@ export default class Evm {
         if (DEV) console.log('WALLET CONNECT', connectedWallet, this.selectedChain)
 
         if (this.isWalletConnected) {
-            if (DEV) console.log('Disconnecting wallet...')
             await disconnectConnectedWallet()
             this.connectedWallet = undefined
         }
 
         try {
-            if (DEV) console.log('Connecting wallet..')
             this.walletConnectRef = true
 
             await connectWallet()
@@ -67,7 +67,7 @@ export default class Evm {
 
             this.connectedWallet = connectedWallet.value
         } catch (error) {
-            if (DEV) console.error('Error connecting wallet:', error)
+            if (DEV) console.error('Error connecting EVM wallet:', error)
         } finally {
             this.walletConnectRef = false
         }
@@ -79,6 +79,7 @@ export default class Evm {
             if (!this.isWalletConnected || !this.selectedChain) return
 
             const currentChainId = this.connectedWallet.provider.chainId
+
             if (currentChainId === this.toHex(this.selectedChain.id)) {
                 if (DEV) console.log('NOTHING TO CHANGE')
                 return
@@ -86,11 +87,15 @@ export default class Evm {
 
             if (DEV) console.log('SETTING', { wallet: this.connectedWallet.label, chainId: this.selectedChain.id })
 
-            const { setChain } = useOnboard()
+            if (this.selectedChain.id !== null) {
+                const { setChain } = useOnboard()
 
-            await setChain({ wallet: this.connectedWallet.label, chainId: this.selectedChain.id })
-            store.commit('wallet/setSelectedChain', this.selectedChain)
-            console.log(this.selectedChain)
+                await setChain({ wallet: this.connectedWallet.label, chainId: this.selectedChain.id })
+            }
+
+            store.commit('evm/setSelectedChain', this.selectedChain)
+
+            if (DEV) console.log(this.selectedChain)
         } catch (error) {
             if (DEV) console.error('Error switch chain:', error)
         }
@@ -117,13 +122,14 @@ export default class Evm {
 
             this.setChainById()
 
-            const selectedChain = store.getters['wallet/selectedChain']
-            const contractAddress = Zerius.getContractForChain(selectedChain.id)
+            const selectedChain = store.getters['evm/selectedChain']
+
+            const contractAddress = selectedChain.contract
 
             if (DEV) console.log(selectedChain, contractAddress)
 
-            if (!window.ethereum || !this.isWalletConnected || !contractAddress) {
-                if (DEV) console.log(!window.ethereum, !this.isWalletConnected, !contractAddress)
+            if (!this.web3 || !this.isWalletConnected || !contractAddress) {
+                if (DEV) console.log(!this.web3, !this.isWalletConnected, !contractAddress)
 
                 return {
                     result: false,
@@ -131,7 +137,7 @@ export default class Evm {
                 }
             }
 
-            const web3 = window.ethereum
+            const web3 = this.web3
             const provider = new ethers.BrowserProvider(web3)
 
             const signer = await provider.getSigner()
@@ -192,23 +198,23 @@ export default class Evm {
         try {
             if (DEV) console.log('BRIDGE', 'id', tokenId, 'from chain', chainId, 'to', toChain)
 
-            const selectedChain = store.getters['wallet/selectedChain']
+            const selectedChain = store.getters['evm/selectedChain']
             if (selectedChain.id != chainId) await this.setChainById()
 
-            const _dstChainId = Zerius.getLzChain(toChain)
+            const _dstChainId = selectedChain.lzChain
 
-            const contractAddress = Zerius.getContractForChain(selectedChain.id)
+            const contractAddress = selectedChain.contract
 
-            if (!window.ethereum || !this.isWalletConnected || !contractAddress || !_dstChainId) {
+            if (!this.web3 || !this.isWalletConnected || !contractAddress || !_dstChainId) {
                 if (DEV) console.error('Invalid configuration for bridge',
-                    !window.ethereum, !this.isWalletConnected, contractAddress, _dstChainId)
+                    !this.web3, !this.isWalletConnected, contractAddress, _dstChainId)
                 return {
                     result: false,
                     msg: 'Something went wrong :(',
                 }
             }
 
-            const web3 = window.ethereum
+            const web3 = this.web3
             const provider = new ethers.BrowserProvider(web3)
 
             const signer = await provider.getSigner()
@@ -325,16 +331,19 @@ export default class Evm {
         return new Promise(attemptCheck)
     }
 
+    /**
+     * @deprecated reuse in BE
+     */
     static async getUri(chainId: number, tokenId: number, hash: string) {
         try {
             if (DEV) {
                 console.log('getUri', chainId, tokenId)
             }
 
-            const contractAddress = Zerius.getContractForChain(chainId)
+            const contractAddress = Config.getContractForChain(chainId)
 
-            if (!window.ethereum || !this.isWalletConnected || !contractAddress) return
-            const web3 = window.ethereum
+            if (!this.web3 || !this.isWalletConnected || !contractAddress) return
+            const web3 = this.web3
 
             const provider = new ethers.BrowserProvider(web3)
             const signer = await provider.getSigner()
@@ -353,7 +362,7 @@ export default class Evm {
 
             const id = Number(await contract.tokenOfOwnerByIndex(owner, tokenId))
 
-            return Zerius.getIpfsUri(id)
+            return Config.getIpfsUri(id)
         } catch (error) {
             if (DEV) {
                 console.error('Error fetching Uri:', error)
@@ -363,22 +372,10 @@ export default class Evm {
         }
     }
 
-    static async collection() {
-        const fetchWithRetry = async (fetchFunction, maxRetries = 5, delay = 1500) => {
-            let retries = 0
-            while (retries < maxRetries) {
-                try {
-                    return await fetchFunction()
-                } catch (error) {
-                    await new Promise(resolve => setTimeout(resolve, delay))
-                    retries++
-                }
-            }
-        }
-
+    static async collection() { // *
         try {
-            if (!window.ethereum || !this.isWalletConnected) return
-            const web3 = window.ethereum
+            if (!this.web3 || !this.isWalletConnected) return
+            const web3 = this.web3
 
             const provider = new ethers.BrowserProvider(web3)
             const signer = await provider.getSigner()
@@ -386,36 +383,33 @@ export default class Evm {
 
             const ITEMS = []
 
-            for (const [chainId, contractAddress] of Object.entries(Zerius.contracts)) {
-                try {
-                    // REMOVE WHEN CORS FIX
-                    if (Number(this.connectedWallet.provider.chainId).toString() === chainId) {
-                        // if (DEV) console.log('COLLECTION', chainId, contractAddress)
-                        const contract = new ethers.Contract(contractAddress, ABI, signer)
+            try {
+                const chainId = Number(this.connectedWallet.provider.chainId)
+                const CHAIN = Config.getChainById(chainId)
 
-                        const tokensCount = Number(await contract.balanceOf(owner))
+                if (CHAIN && CHAIN.contract) {
+                    // if (DEV) console.log('COLLECTION', chainId, contractAddress)
+                    const contract = new ethers.Contract(CHAIN.contract, ABI, signer)
 
-                        const chainItems = []
-                        for (let i = 0; i < tokensCount; i++) {
-                            const fetchFunction = async () => {
-                                const id = Number(await contract.tokenOfOwnerByIndex(owner, i))
-                                const uri = Zerius.getIpfsUri(id)
+                    const tokensCount = Number(await contract.balanceOf(owner))
 
-                                return { chainId, id, uri }
-                            }
+                    const chainItems = []
+                    for (let i = 0; i < tokensCount; i++) {
+                        const id = Number(await contract.tokenOfOwnerByIndex(owner, i))
+                        const uri = Config.getIpfsUri(id)
 
-                            const result = await fetchWithRetry(fetchFunction, 6, 1500)
-                            chainItems.push(result)
-                        }
+                        const item = { chainId, id, uri }
+                        chainItems.push(item)
 
-                        if (chainItems.length) ITEMS.push(chainItems)
+                        // yield item
                     }
-                } catch (error) {
-                    // if (DEV) console.error('Error fetch:', chainId, error)
+
+                    if (chainItems.length) ITEMS.push(chainItems)
                 }
+            } catch (error) {
+                // if (DEV) console.error('Error fetch:', chainId, error)
             }
 
-            // if (DEV) console.log('COLLECTION result', ITEMS.flat().sort((a, b) => a.id - b.id))
             return ITEMS.flat().sort((a, b) => a.id - b.id)
         } catch (error) {
             if (DEV) {
@@ -428,7 +422,7 @@ export default class Evm {
 
     static async getReceipt(txHash: string): Promise<any> {
         try {
-            const web3 = window.ethereum
+            const web3 = this.web3
             const provider = new ethers.BrowserProvider(web3)
 
             const receipt = await provider.getTransactionReceipt(txHash)

@@ -102,6 +102,8 @@ $medium: 1500px;
 .carousel__wrapper {
     margin: 2rem auto;
 
+    outline: none;
+
     max-width: 1500px;
     overflow-y: visible;
     overflow-x: hidden;

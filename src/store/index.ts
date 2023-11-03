@@ -1,9 +1,14 @@
 import { createStore } from 'vuex'
 
-import wallet from './wallet'
+import config from './config'
+
+import evm from './evm'
+import starknet from './starknet'
 
 export default createStore({
     modules: {
-        wallet
-    },
+        config,
+        evm,
+        starknet,
+    }
 })

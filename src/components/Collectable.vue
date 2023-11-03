@@ -2,7 +2,7 @@
 import { ModalsContainer, useModal } from 'vue-final-modal'
 import Modal from './Modal.vue'
 
-import Zerius from './config'
+import Config from '@/controllers/config'
 
 import blank from '/img/blank.png'
 import arrow from '/img/arrow.svg'
@@ -28,7 +28,7 @@ patchOptions({
 })
 
 const getChainIconSrc = (chainId: number) => {
-    const chain = Zerius.getChainById(chainId)
+    const chain = Config.getChainById(chainId)
     return `/img/chains/${chain?.icon ? chain.icon : `${chain.label.toLowerCase()}.svg`}`
 }
 </script>

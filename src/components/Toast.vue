@@ -1,30 +1,46 @@
 <template>
-    <div v-if="!explorer?.hash" class="toast-body">
+    <div class="toast-body">
         <span class="toast-info">{{ info }}</span>
-        <div class="toast-date">less than 1 minute ago</div>
+
+        <a v-if="explorer?.hash" :href="url" target="_blank" rel="noopener noreferrer">
+            <div class="toast-explorer">
+                <span class="toast-explorer">View on explorer</span>
+                <img alt="link" :src="linkImg" />
+            </div>
+        </a>
+
+        <div class="toast-date">{{ timeMessage }}</div>
     </div>
-
-    <a v-else class="toast-body" :href="url" target="_blank" rel="noopener noreferrer">
-        <span class="toast-info">{{ info }}</span>
-
-        <div class="toast-explorer">
-            <span class="toast-explorer">View on explorer</span>
-            <img alt="link" :src="linkImg" />
-        </div>
-
-        <div class="toast-date">less than 1 minute ago</div>
-    </a>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import Zerius from '../components/config'
+import { ref, computed } from 'vue'
+import Config from '@/controllers/config'
 
 import linkImg from '/img/link.svg'
 
+// Time
+const creationTime = ref(Date.now())
+
+const timeDifference = computed(() => {
+    const now = Date.now()
+    const diffInMilliseconds = now - creationTime.value
+    const diffInMinutes = Math.floor(diffInMilliseconds / (1000 * 60))
+    return diffInMinutes
+})
+
+const timeMessage = computed(() => {
+    if (timeDifference.value < 1) {
+        return 'less than 1 minute ago'
+    } else {
+        return `${timeDifference.value} minutes ago`
+    }
+})
+
+// Explorer
 const { info, explorer } = defineProps(['info', 'explorer'])
 
-const url = computed(() => Zerius.getExplorerTxUrl(explorer))
+const url = computed(() => Config.getExplorerTxUrl(explorer))
 </script>
 
 <style lang="scss">

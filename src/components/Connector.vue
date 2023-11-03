@@ -9,18 +9,19 @@ import injectedModule from '@web3-onboard/injected-wallets'
 
 import store from '@/store'
 
-import WalletControl from './walletControl'
-import Evm from './evm'
-import Zerius from './config'
+import WalletControl from '@/controllers/walletControl'
+import Config from '@/controllers/config'
+import Evm from '@/controllers/evm'
+import Starknet from '@/controllers/starknet'
 
 import CustomSelect from "./Select.vue"
 import Modal from '@/components/Modal.vue'
 
-
+// EVM
 const injected = injectedModule()
 const web3Onboard = init({
     wallets: [injected],
-    chains: Zerius.chains,
+    chains: Config.chainsConnect,
     accountCenter: {
         desktop: {
             enabled: false,
@@ -46,26 +47,31 @@ const {
     setChain
 } = useOnboard()
 
-const chains = Zerius.chains
+onMounted(() => [
+    // Starknet
+    Starknet.connect()
+])
+
+const chains = Config.chains
 
 const selectedChain = ref(null)
 const selectedChainRef = ref(null)
-const walletConnectRef = computed(() => store.state.wallet.walletConnectRef)
+const walletConnectRef = computed(() => store.state.evm.walletConnectRef)
 
-store.commit('wallet/setSelectedChain', selectedChainRef.value?.selected)
-store.commit('wallet/setWalletConnectRef', walletConnectRef.value)
+store.commit('evm/setSelectedChain', selectedChainRef.value?.selected)
+store.commit('evm/setWalletConnectRef', walletConnectRef.value)
 
 const toggleWallet = async () => Evm.toggleWallet()
 const setChainById = () => Evm.setChainById()
 const formatAddress = (address) => Evm.formatAddress(address)
 
 watch(selectedChainRef, (newValue, oldValue) => {
-    store.commit('wallet/setSelectedChain', newValue?.selected)
+    store.commit('evm/setSelectedChain', newValue?.selected)
     setChainById()
 })
 
 onMounted(() => {
-    store.commit('wallet/setOverwriteChain', true)
+    store.commit('evm/setOverwriteChain', true)
 })
 
 // MODAL
@@ -88,7 +94,6 @@ patchOptions({
         close
     }
 })
-
 </script>
 
 <template>

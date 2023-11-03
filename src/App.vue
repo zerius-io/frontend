@@ -80,12 +80,6 @@ body::after {
   min-height: 100vh;
 }
 
-.flex {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
 h1 {
   margin: 2.6rem auto;
 
@@ -100,6 +94,17 @@ h1 {
 a {
   all: unset;
   cursor: pointer;
+}
+
+.flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// For Starknet connection
+.backdrop-blur-sm {
+  display: none !important;
 }
 
 button,
@@ -188,6 +193,11 @@ option,
       text-transform: uppercase;
       letter-spacing: 0.45rem;
     }
+
+    &-starknet {
+      background: var(--blue, #762cff);
+      box-shadow: 0px 0px 16px 0px #762cff67;
+    }
   }
 
   &__shadow {
@@ -201,6 +211,16 @@ option,
 
 select {
   background: rgba(255, 255, 255, 0.50);
+
+  :disabled {
+    pointer-events: none;
+    opacity: 0.6;
+  }
+}
+
+.select {
+  margin-left: 1.15rem;
+  margin-right: 1.15rem;
 }
 
 .router-link {

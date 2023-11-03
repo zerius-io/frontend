@@ -2,8 +2,8 @@
 import { ref, computed, onMounted, watchEffect, watch } from 'vue'
 import { useStore } from 'vuex'
 
-import Evm from './evm'
-import Zerius from './config'
+import Config from '@/controllers/config'
+import Evm from '@/controllers/evm'
 
 export default {
     props: {
@@ -25,16 +25,33 @@ export default {
 
         const open = ref(false)
         const selectRef = ref(null)
-        const selected = ref(props.options[0] || null)
+        const selected = ref(Config.chains[0] || null)
 
         const filteredOptions = computed(() => {
-            const walletSelectedChain = store.state.wallet.selectedChain?.id || null
+            const walletSelectedChain = store.state.evm.selectedChain?.id || null
+
             if (props.isolate) {
-                const block = Zerius.chainsBlock(walletSelectedChain)
-                return props.options.filter((option) => !block.includes(option.id))
+                // TODO CHANGE
+                const block = Config.getChainById(walletSelectedChain)?.block || []
+
+                if (block.includes(0)) { }
+
+                return Config.chains.filter((option) =>
+                    !block.includes(option.id)
+                )
             }
 
-            return props.options
+            return Config.chains
+        })
+
+        const isDisabled = computed(() => {
+            if (props.isolate) {
+                const walletSelectedChain = store.state.evm.selectedChain?.id || null
+                const block = Config.getChainById(walletSelectedChain)?.block || []
+                return block.includes(0)
+            }
+
+            return false
         })
 
         const selectRandomChain = () => {
@@ -51,7 +68,7 @@ export default {
             open.value = false
 
             if (!props.isolate) {
-                store.commit('wallet/setSelectedChain', selected.value)
+                store.commit('evm/setSelectedChain', selected.value)
             }
 
             emit('change')
@@ -69,16 +86,16 @@ export default {
         })
 
         if (!props.isolate) {
-            watch(() => store.getters['wallet/overwriteChain'], (newValue, oldValue) => {
+            watch(() => store.getters['evm/overwriteChain'], (newValue, oldValue) => {
                 const retryCount = ref(0)
 
                 const executeLogic = () => {
                     if (newValue !== oldValue) {
-                        const chainObj = Zerius.getChainById(Evm.walletChainId)
+                        const chainObj = Config.getChainById(Evm.walletChainId)
 
                         if (chainObj) selected.value = chainObj
-                        store.commit('wallet/setOverwriteChain', false)
-                        store.commit('wallet/setSelectedChain', selected.value)
+                        store.commit('evm/setOverwriteChain', false)
+                        store.commit('evm/setSelectedChain', selected.value)
                     }
                 }
 
@@ -111,10 +128,6 @@ export default {
             }
         })
 
-        const newLabel = (id: number) => {
-            return Zerius.newLabel(id)
-        }
-
         return {
             selected,
             open,
@@ -122,14 +135,14 @@ export default {
             selectOption,
             getImageSrc,
             selectRef,
-            newLabel
+            isDisabled
         }
     }
 }
 </script>
 
 <template>
-    <div class="select" @blur="open = false" :class="{ open: open }" ref="selectRef">
+    <div class="select" @blur="open = false" :class="{ open: open }" ref="selectRef" :disabled="isDisabled">
         <div class="select__selected" :class="{ open: open }" @click="open = !open">
             <template v-if="selected">
                 <img :src="getImageSrc(selected)" class="select__icon" />
@@ -140,7 +153,7 @@ export default {
             <div v-for="(option, i) of filteredOptions" :key="i" @click="selectOption(option)" class="select__items-item">
                 <img :src="getImageSrc(option)" class="select__icon" />
                 {{ option.label }}
-                <span v-if="newLabel(option.id)" class="new-tip">new</span>
+                <span v-if="option.new" class="new-tip">new</span>
             </div>
         </div>
     </div>
@@ -148,9 +161,13 @@ export default {
 
 <style lang="scss">
 .select {
-    position: relative;
+    margin: 0 auto;
 
-    margin: 0 1.5rem;
+    &-modal {
+        margin: 0 auto !important;
+    }
+
+    position: relative;
 
     width: 11.25rem;
 
@@ -239,7 +256,7 @@ export default {
 
         max-height: 15rem;
 
-        overflow-x:hidden;
+        overflow-x: hidden;
         overflow-y: scroll;
 
         &::-webkit-scrollbar {
@@ -289,4 +306,3 @@ export default {
 
 }
 </style>
-  

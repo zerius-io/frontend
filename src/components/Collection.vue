@@ -4,16 +4,17 @@ import { ref, onMounted, computed, watch } from 'vue'
 import Collectable from './Collectable.vue'
 
 import store from '@/store'
-import Evm from './evm'
+import Evm from '@/controllers/evm'
+import UTILS from '@/controllers/utils'
 
 const collection = ref([])
 
-const connectedWallet = computed(() => store.getters['wallet/connectedWallet'])
-const selectedChain = computed(() => store.getters['wallet/selectedChain'])
-const isCollectionNeedUpdate = computed(() => store.getters['wallet/collection'])
+const connectedWallet = computed(() => store.getters['evm/connectedWallet'])
+const selectedChain = computed(() => store.getters['evm/selectedChain'])
+const isCollectionNeedUpdate = computed(() => store.getters['evm/collection'])
 
 onMounted(async () => {
-    await Evm.wait(1000)
+    await UTILS.wait(1000)
     await fetchCollection()
 })
 
@@ -22,7 +23,7 @@ watch(connectedWallet, async (newVal, oldVal) => {
 })
 
 watch(selectedChain, async (newVal, oldVal) => {
-    await Evm.wait(5000)
+    await UTILS.wait(5000)
     if (newVal && newVal !== oldVal) await fetchCollection()
 })
 
@@ -33,12 +34,24 @@ watch(isCollectionNeedUpdate, async (newVal, oldVal) => {
 const fetchCollection = async () => {
     collection.value = await Evm.collection()
 }
+// const fetchCollection = async () => {
+//     const uniqueIds = new Set(collection.value.map(item => item.id))
+
+//     for await (const item of Evm.collection()) {
+//         if (!uniqueIds.has(item.id)) {
+//             collection.value.push(item)
+//             uniqueIds.add(item.id)
+//         }
+//     }
+// }
 </script>
 
 <template>
     <div style="margin: 2.8rem auto; margin-top: 3.5rem">
         <div class="flex collectables">
-            <Collectable v-for="item in collection" :key="item?.id" :item="item" :clickable="true" />
+            <transition name="fade" v-for="item in collection" :key="item?.id">
+                <Collectable :item="item" :clickable="true" />
+            </transition>
         </div>
     </div>
 </template>
@@ -50,5 +63,15 @@ h1 {
 
 .collectables {
     flex-wrap: wrap;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.5s ease-out;
+}
+
+.fade-enter,
+.fade-leave-to {
+    opacity: 0;
 }
 </style>

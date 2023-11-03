@@ -6,9 +6,10 @@ import { useToast } from 'vue-toastification'
 
 import store from '@/store'
 
-import WalletControl, { walletType, starknetWalletType } from './walletControl'
-import Evm from './evm'
-import Zerius from './config'
+import WalletControl, { walletType } from '@/controllers/walletControl'
+import Config from '@/controllers/config'
+import Evm from '@/controllers/evm'
+import Starknet, { _starknetWalletType } from '@/controllers/starknet'
 
 import CustomSelect from "./Select.vue"
 import Collectable from './Collectable.vue'
@@ -70,7 +71,7 @@ async function bridge() {
     showToast(msg, { id: chainId, hash: receipt?.hash })
 
     if (result) {
-        store.commit('wallet/setCollection', true)
+        store.commit('evm/setCollection', true)
     }
 }
 
@@ -82,15 +83,65 @@ const bridgeOk = computed(() => res.value?.result)
 
 
 // Wallet Connect
+// EVM
 const isEvmWalletConnected = computed(() => Evm.isWalletConnected)
 const evmConnectedWallet = computed(() => Evm.connectedWallet)
+// Starknet
+const isStarknetWalletConnected = computed(() => Starknet.isWalletConnected)
+const starknetConnectedWallet = computed(() => Starknet.connectedWallet)
+const starknetProvider = computed(() => Starknet.provider)
+const starknetWalletProviderName = computed(() => starknetProvider?.value?.name || '')
 
 const formatAddress = (address) => Evm.formatAddress(address)
 
-async function connect(type: walletType, starknetWalletType?: starknetWalletType) {
+async function connect(type: walletType, starknetWalletType?: _starknetWalletType) {
     if (type === 'evm') emit('confirm')
 
+    if (type === 'starknet') {
+        if (!isStarknetWalletConnected && starknetWalletProviderName !== starknetWalletType) {
+            starknetProxy(starknetWalletType)
+        }
+    }
+
     await WalletControl.connect(type)
+}
+
+async function starknetProxy(wallet: string) {
+    const maxWaitTime = 10000
+    let waitedTime = 0
+
+    let element
+
+    const getWalletElement = () => {
+        if (wallet === 'argent') {
+            return document.querySelector('ul > li')
+        }
+
+        if (wallet === 'braavos') {
+            return document.querySelector('ul > a')
+        }
+
+        return null
+    }
+
+    return new Promise<void>((resolve, reject) => {
+        const intervalId = setInterval(() => {
+            element = getWalletElement()
+
+            if (element) {
+                console.log(element)
+                element.click()
+
+                clearInterval(intervalId)
+                resolve()
+            } else if (waitedTime >= maxWaitTime) {
+                clearInterval(intervalId)
+                reject()
+            } else {
+                waitedTime += 50
+            }
+        }, 50)
+    })
 }
 </script>
 
@@ -100,8 +151,8 @@ async function connect(type: walletType, starknetWalletType?: starknetWalletType
         <div v-if="!walletConnect" class="">
             <h1>{{ !res ? title : bridgeOk ? 'Success!' : 'Something went wrong :(' }}</h1>
 
-            <custom-select v-if="bridgeCase" ref="selectedChainRef" :options="Zerius.chains" v-model="selectedChain"
-                :isolate="true" :initialChainId="collectable.chainId" />
+            <custom-select v-if="bridgeCase" ref="selectedChainRef" class="    select-modal" :options="Config.chains"
+                v-model="selectedChain" :isolate="true" :initialChainId="collectable.chainId" />
 
             <div v-if="!afterBridge">
                 <Collectable :item="collectable" :clickable="false" />
@@ -145,12 +196,20 @@ async function connect(type: walletType, starknetWalletType?: starknetWalletType
             <div style="display: flex; flex-direction: column;">
                 <button class="button button__shadow flex" @click="connect('starknet', 'argent')">
                     <img class="wallet-icon" alt="wallet" :src="icon_argent" />
-                    Argent X
+                    {{
+                        isStarknetWalletConnected && starknetWalletProviderName === 'Argent X' ?
+                        formatAddress(starknetConnectedWallet) :
+                        'Connect Argent X'
+                    }}
                 </button>
 
                 <button class="button button__shadow flex" @click="connect('starknet', 'braavos')">
                     <img class="wallet-icon" alt="wallet" :src="icon_braavos" />
-                    Braavos
+                    {{
+                        isStarknetWalletConnected && starknetWalletProviderName === 'Braavos' ?
+                        formatAddress(starknetConnectedWallet) :
+                        'Connect Braavos'
+                    }}
                 </button>
             </div>
         </div>
