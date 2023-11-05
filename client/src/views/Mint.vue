@@ -93,7 +93,7 @@ async function mint() {
 
             open()
 
-            store.commit('evm/setCollection', true)
+            store.commit('evm/setCollection', item)
         }
     }
 }

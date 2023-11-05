@@ -154,6 +154,8 @@ select,
 
 button {
   &:disabled {
+    cursor: default;
+
     text-transform: capitalize;
     letter-spacing: 0.1rem;
 

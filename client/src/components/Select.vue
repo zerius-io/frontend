@@ -12,7 +12,7 @@ export default {
             required: true,
         },
         initialChainId: {
-            type: String,
+            type: Number,
             default: null
         },
         isolate: {
@@ -34,7 +34,9 @@ export default {
                 // TODO CHANGE
                 const block = Config.getChainById(walletSelectedChain)?.block || []
 
-                if (block.includes(0)) { }
+                if (block.includes(0)) {
+
+                }
 
                 return Config.chains.filter((option) =>
                     !block.includes(option.id)
@@ -46,9 +48,13 @@ export default {
 
         const isDisabled = computed(() => {
             if (props.isolate) {
-                const walletSelectedChain = store.state.evm.selectedChain?.id || null
-                const block = Config.getChainById(walletSelectedChain)?.block || []
-                return block.includes(0)
+                if (props.initialChainId == null) return true
+                // const walletSelectedChain = store.state.evm.selectedChain?.id || null
+                // console.log(walletSelectedChain, walletSelectedChain === null)
+                // if (walletSelectedChain === null) return true
+
+                // const block = Config.getChainById(walletSelectedChain)?.block || []
+                // return block.includes(0)
             }
 
             return false
@@ -142,8 +148,9 @@ export default {
 </script>
 
 <template>
-    <div class="select" @blur="open = false" :class="{ open: open }" ref="selectRef" :disabled="isDisabled">
-        <div class="select__selected" :class="{ open: open }" @click="open = !open">
+    <div class="select" @blur="open = false" :class="{ open: open, 'disabled-pointer': isDisabled }" ref="selectRef"
+        :disabled="isDisabled">
+        <div class="select__selected" :class="{ open: open, 'disabled-pointer': isDisabled }" @click="open = !open">
             <template v-if="selected">
                 <img :src="getImageSrc(selected)" class="select__icon" />
             </template>
@@ -304,5 +311,22 @@ export default {
         }
     }
 
+}
+
+.disabled-pointer {
+    pointer-events: none !important;
+
+    border: 1px solid #D4D4D4;
+    color: #D4D4D4;
+
+    background: rgba(255, 255, 255, 0.50);
+
+    box-shadow: 0px 0px 8px 0px rgba(205, 218, 252, 0.20);
+    backdrop-filter: blur(3px);
+
+    .select,
+    .select__selected:after {
+        border-color: #D4D4D4 transparent transparent transparent;
+    }
 }
 </style>

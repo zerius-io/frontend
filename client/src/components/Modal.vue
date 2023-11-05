@@ -71,7 +71,7 @@ async function bridge() {
     showToast(msg, { id: chainId, hash: receipt?.hash })
 
     if (result) {
-        store.commit('evm/setCollection', true)
+        store.commit('evm/setCollection', { ...collectable, chainId })
     }
 }
 
@@ -129,7 +129,6 @@ async function starknetProxy(wallet: string) {
             element = getWalletElement()
 
             if (element) {
-                console.log(element)
                 element.click()
 
                 clearInterval(intervalId)
@@ -143,6 +142,11 @@ async function starknetProxy(wallet: string) {
         }, 50)
     })
 }
+
+const isDisabled = computed(() => {
+    if (collectable.chainId == null) return true
+    return false
+})
 </script>
 
 <template>
@@ -157,7 +161,7 @@ async function starknetProxy(wallet: string) {
             <div v-if="!afterBridge">
                 <Collectable :item="collectable" :clickable="false" />
 
-                <button v-if="bridgeCase" @click="bridge" :disabled="bridging" class="button__full">
+                <button v-if="bridgeCase" @click="bridge" :disabled="isDisabled || bridging" class="button__full">
                     {{ bridging ? 'Sending' : 'Send' }}
                     <Spinner v-if="bridging" />
                 </button>
@@ -166,7 +170,7 @@ async function starknetProxy(wallet: string) {
                 <img class="status" alt="status" :src="bridgeOk ? ok_img : error_img" />
 
                 <div v-if="bridgeCase" class="flex" style="flex-direction: column;">
-                    <button @click="close" :disabled="bridging" class="button__full">
+                    <button @click="close" :disabled="isDisabled || bridging" class="button__full">
                         {{ bridging ? 'Sending' : 'Send again' }}
                         <Spinner v-if="bridging" />
                     </button>

@@ -1,41 +1,17 @@
 {
   "name": "zerius",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
-    "preview": "vite preview --host"
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm run dev"
   },
-  "dependencies": {
-    "@vitejs/plugin-vue-jsx": "^3.0.2",
-    "@vue/reactivity": "^3.3.4",
-    "@web3-onboard/coinbase": "^2.2.6",
-    "@web3-onboard/fortmatic": "^2.0.19",
-    "@web3-onboard/gnosis": "^2.2.0",
-    "@web3-onboard/infinity-wallet": "^2.0.4",
-    "@web3-onboard/injected-wallets": "^2.10.7",
-    "@web3-onboard/trust": "^2.0.4",
-    "@web3-onboard/vue": "^2.7.12",
-    "bnc-sdk": "^1.1.0",
-    "crypto-es": "^2.1.0",
-    "ethers": "^6.7.1",
-    "get-starknet": "^3.0.1",
-    "starknet": "^5.22.0",
-    "viem": "^1.15.3",
-    "vue": "^3.3.4",
-    "vue-final-modal": "^4.4.5",
-    "vue-router": "^4.2.5",
-    "vue-toastification": "^2.0.0-rc.5",
-    "vue3-carousel": "^0.3.1",
-    "vuex": "^4.1.0"
-  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "devDependencies": {
-    "@vitejs/plugin-vue": "^4.2.3",
-    "sass": "^1.68.0",
-    "typescript": "^5.0.2",
-    "vite": "^4.4.5",
-    "vue-tsc": "^1.8.5"
+    "concurrently": "^8.2.2"
   }
 }

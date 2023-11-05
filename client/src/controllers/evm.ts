@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { ethers } from 'ethers'
 import { useOnboard } from '@web3-onboard/vue'
 
@@ -6,6 +7,7 @@ import store from '@/store'
 import Config from '@/controllers/config'
 
 import ABI from '@/assets/ABI/evm.json'
+import Starknet from './starknet.js'
 
 const DEV = import.meta.env.DEV
 
@@ -15,6 +17,11 @@ export interface TxResult {
     receipt?: any;
 }
 
+export interface CollectionItem {
+    chainId: number | null
+    id: number
+    uri: string
+}
 export default class Evm {
     static get web3() {
         return window.ethereum
@@ -31,6 +38,10 @@ export default class Evm {
 
     static get isWalletConnected() {
         return !!this.connectedWallet?.label
+    }
+
+    static get walletAddress(): string {
+        return this.connectedWallet?.accounts?.[0].address || null
     }
 
     static get walletConnectRef() {
@@ -372,7 +383,37 @@ export default class Evm {
         }
     }
 
-    static async collection() { // *
+    static async collection(): Promise<CollectionItem[]> {
+        try {
+            if (!this.isWalletConnected) return
+            if (DEV) console.log('FETCH COLLECTION')
+
+            let payload: any = {}
+
+            const evmAddress = this.walletAddress
+            if (evmAddress && evmAddress.length === 42) payload.evmAddress = evmAddress
+
+            const starknetAddress = Starknet.connectedWallet
+            if (starknetAddress && (starknetAddress.length <= 65 && starknetAddress.length <= 66)) payload.starknetAddress = starknetAddress
+
+            if (DEV) console.log('FETCH COLLECTION DO', evmAddress, starknetAddress)
+
+            const response = await axios.post('http://localhost:3000/api/collection', { evmAddress, starknetAddress })
+
+            const data: CollectionItem[] = response.data || []
+
+            if (DEV) console.log('FETCHED COLLECTION', data)
+            return data
+        } catch (error) {
+            if (DEV) console.error('[Error] fetching collection', error)
+
+            const fallback = await this._collection()
+
+            return fallback || []
+        }
+    }
+
+    static async _collection() { // *
         try {
             if (!this.web3 || !this.isWalletConnected) return
             const web3 = this.web3

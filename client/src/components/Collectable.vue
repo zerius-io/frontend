@@ -31,11 +31,15 @@ const getChainIconSrc = (chainId: number) => {
     const chain = Config.getChainById(chainId)
     return `/img/chains/${chain?.icon ? chain.icon : `${chain.label.toLowerCase()}.svg`}`
 }
+
+const onImageError = (event) => {
+    event.target.src = blank
+}
 </script>
 
 <template>
     <div class="collectable-item" v-on="clickable ? { click: open } : {}">
-        <img :src="item?.uri ? item.uri : blank" class="collectable-item-img" />
+        <img :src="item?.uri || blank" @error="onImageError" class="collectable-item-img" />
         <div class="collectable-item-info flex">
             <img :src="getChainIconSrc(item?.chainId)" class="collectable-item-info-chain" />
             <div class="collectable-item-info-text">minis #{{ item?.id }}</div>
@@ -67,6 +71,8 @@ const getChainIconSrc = (chainId: number) => {
         margin: 0 auto;
         margin-top: -.5rem;
         padding: 0.75rem 1rem;
+
+        min-height: 2.7rem;
 
         border-radius: 0rem 0rem 0.75rem 0.75rem;
         background: rgba(255, 255, 255, 0.80);

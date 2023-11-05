@@ -89,6 +89,8 @@ export default class Starknet {
             if (starknet) {
                 this.provider = starknet
                 this.connectedWallet = starknet?.selectedAddress || ''
+
+                store.commit('evm/setCollection', null)
             }
         } catch (error) {
             if (DEV) console.error('STARKNET WALLET CONNECT', error.message)
