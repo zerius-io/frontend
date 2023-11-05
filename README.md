@@ -1,3 +1,7 @@
 # Zerius
 
-![Zerius](./public/img/logo.svg)
+Front & Back
+
+![Zerius](./client/public/img/logo.svg)
+
+2023
