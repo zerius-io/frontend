@@ -7,6 +7,7 @@ import Collectable from './Collectable.vue'
 import store from '@/store'
 import Evm, { CollectionItem } from '@/controllers/evm'
 import UTILS from '@/controllers/utils'
+import Starknet from '@/controllers/starknet'
 
 
 const STORAGE_NAME = 'ZeriusCollection'
@@ -39,13 +40,24 @@ watch(isCollectionNeedUpdate, async (newVal, oldVal) => {
 
 const initCollection = async () => {
     const storedData = getFromLocalStorage()
-
     // console.log('storedData', storedData)
 
-    if (storedData && !isCollectionExpired(storedData.timestamp)) {
-        collection.value = storedData.collection
-    } else {
-        await fetchCollection()
+    if (Evm.isWalletConnected || Starknet.isWalletConnected) {
+        if (storedData && !isCollectionExpired(storedData.timestamp)) {
+            if (Evm.isWalletConnected && !Starknet.isWalletConnected) {
+                collection.value = storedData.collection.filter((item: CollectionItem) => item.chainId != null)
+            }
+
+            if (!Evm.isWalletConnected && Starknet.isWalletConnected) {
+                collection.value = storedData.collection.filter((item: CollectionItem) => item.chainId == null)
+            }
+
+            if (Evm.isWalletConnected && Starknet.isWalletConnected) {
+                collection.value = storedData.collection
+            }
+        } else {
+            await fetchCollection()
+        }
     }
 }
 

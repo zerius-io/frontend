@@ -37,7 +37,7 @@ export default class Evm {
     }
 
     static get isWalletConnected() {
-        return !!this.connectedWallet?.label
+        return !!this.connectedWallet?.label || ''
     }
 
     static get walletAddress(): string {
@@ -77,6 +77,8 @@ export default class Evm {
             await this.setChainById()
 
             this.connectedWallet = connectedWallet.value
+
+            store.commit('evm/setCollection', null)
         } catch (error) {
             if (DEV) console.error('Error connecting EVM wallet:', error)
         } finally {
@@ -96,12 +98,12 @@ export default class Evm {
                 return
             }
 
-            if (DEV) console.log('SETTING', { wallet: this.connectedWallet.label, chainId: this.selectedChain.id })
+            if (DEV) console.log('SETTING', { wallet: this.connectedWallet?.label, chainId: this.selectedChain.id })
 
             if (this.selectedChain.id !== null) {
                 const { setChain } = useOnboard()
 
-                await setChain({ wallet: this.connectedWallet.label, chainId: this.selectedChain.id })
+                await setChain({ wallet: this.connectedWallet?.label, chainId: this.selectedChain.id })
             }
 
             store.commit('evm/setSelectedChain', this.selectedChain)

@@ -1,12 +1,10 @@
-import { cairo, Account, ec, json, stark, Provider, hash, Contract, encode, Uint256 } from "starknet"
-
-import { connect } from "get-starknet"
+import { cairo, Contract, Uint256 } from "starknet"
 import * as StarknetCore from "get-starknet-core"
 
 import store from '@/store'
 
 import Config from '@/controllers/config'
-import Evm, { TxResult } from './evm.js'
+import { TxResult } from './evm.js'
 
 import ABI from '@/assets/ABI/starknet.json'
 import ABI_ETH from '@/assets/ABI/starknet_eth.json'
@@ -17,10 +15,42 @@ const ETH_CONTRACT = '0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f
 
 
 export type _starknetWalletType = 'argent' | 'braavos'
+
+export interface _starknetWallet {
+    id: string
+    name: string
+    icon: string
+    account: _starknetAccountInfo
+    provider: {
+        provider: _starknetProviderInfo
+    }
+    selectedAddress: string
+    chainId: string
+    isConnected: boolean
+    version: string
+    starknetJsVersion: string
+    enable: (params: { starknetVersion: string }) => any
+}
+
+export type _starknetProviderInfo = {
+    responseParser: any
+    baseUrl: string
+    feederGatewayUrl: string
+    gatewayUrl: string
+    chainId: string
+    blockIdentifier: string
+}
+
+export type _starknetAccountInfo = {
+    provider: _starknetProviderInfo
+    address: string
+    signer: any
+    cairoVersion?: string
+}
+
 export type _starknetTx = {
     transaction_hash: string
 }
-
 
 export default class Starknet {
 
@@ -60,53 +90,76 @@ export default class Starknet {
         return store.state.starknet.walletType
     }
 
-    static async toggleWallet(walletType?: 'argent' | 'braavos') {
-        if (DEV) console.log('STARKNET WALLET CONNECT')
-
-        await this.connect()
-        // switch (walletType) {
-        //     case 'argent':
-        //         await ArgentConnect.connect()
-        //         break
-
-        //     case 'braavos':
-        //         await BraavosConnect.connect()
-        //         break
-
-        //     default:
-        //         break
-        // }
+    static walletInArray(arr: any[], walletType: _starknetWalletType | string): _starknetWallet | undefined {
+        walletType = walletType.toLowerCase()
+        return arr.find(wallet => wallet?.name.toLowerCase().includes(walletType)) || undefined
     }
 
-    static async connect() {
+    static async toggleWallet(walletType?: _starknetWalletType) {
+        if (DEV) console.log('STARKNET WALLET TOOGLE', walletType)
+
+        let WALLET: _starknetWallet | undefined = undefined
+
         try {
-            const starknet = await connect()
+            const discoveryWallets = await StarknetCore.default.getDiscoveryWallets()
+            const availableWallets = await StarknetCore.default.getAvailableWallets()
 
-            await starknet?.enable({ starknetVersion: "v5" })
+            if (DEV) console.log('discoveryWallets', discoveryWallets)
+            if (DEV) console.log('availableWallets', availableWallets)
 
-            if (DEV) console.log('STARKNET', starknet)
+            const lastConnectedWallet = await StarknetCore.default.getLastConnectedWallet()
+            if (DEV) console.log('lastConnectedWallet', lastConnectedWallet)
 
-            if (starknet) {
-                this.provider = starknet
-                this.connectedWallet = starknet?.selectedAddress || ''
+            let walletToConnect = undefined
 
-                store.commit('evm/setCollection', null)
+            if (walletType) {
+                walletToConnect = this.walletInArray(availableWallets, walletType) || this.walletInArray(discoveryWallets, walletType)
             }
+
+            if (!walletType) {
+                if (availableWallets && lastConnectedWallet) {
+                    walletToConnect = this.walletInArray(availableWallets, lastConnectedWallet?.name) || this.walletInArray(discoveryWallets, lastConnectedWallet?.name)
+                    if (DEV) console.log("WALLET TO RECONNECT", walletToConnect)
+                }
+            }
+
+            if (walletToConnect) WALLET = await this.connect(walletToConnect)
+
+            if (DEV) console.log('WALLET res', WALLET)
+            return WALLET
+        } catch (error) {
+            if (DEV) console.log('STARKNET WALLET TOOGLE ERROR', error)
+        }
+    }
+
+    static async connect(WALLET: _starknetWallet) {
+        let RESULT: _starknetWallet | undefined = undefined
+
+        try {
+            if (!WALLET.isConnected) {
+                RESULT = await WALLET?.enable({ starknetVersion: "v5" })
+            } else {
+                console.log('WALL', WALLET)
+                RESULT = WALLET
+            }
+
+            this.provider = RESULT
+            this.connectedWallet = RESULT.selectedAddress
+
+            store.commit('evm/setCollection', null)
+
+            return RESULT
         } catch (error) {
             if (DEV) console.error('STARKNET WALLET CONNECT', error.message)
         }
     }
 
+    static async disconnect(wallet: any) {
+
+    }
+
     static async reconnect() {
-        const starknet = await StarknetCore.default.getLastConnectedWallet()
 
-        if (starknet) {
-            this.provider = starknet
-            this.connectedWallet = starknet?.selectedAddress || ''
-        }
-
-        // console.log("RESULT", starknet, starknet?.selectedAddress)
-        return starknet
     }
 
     static convertBigIntToUint(bigInt: bigint): Uint256 {

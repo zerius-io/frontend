@@ -172,7 +172,7 @@
             "id": 250,
             "token": "FTM",
             "label": "Fantom",
-            "rpcUrl": "https://rpcapi.fantom.network",
+            "rpcUrl": "https://rpc.ankr.com/fantom",
             "lzChain": 112,
             "contract": "0x5188368a92B49F30f4Cf9bEF64635bCf8459c7A7",
             "explorer": "https://ftmscan.com/",

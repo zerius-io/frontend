@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "preview": "vite preview --host"
+    "preview": "vite preview --host",
+    "preview-dev": "npm run build && DEV=true vite preview --host --mode development"
   },
   "dependencies": {
     "@vitejs/plugin-vue-jsx": "^3.0.2",

@@ -97,50 +97,7 @@ const formatAddress = (address) => Evm.formatAddress(address)
 async function connect(type: walletType, starknetWalletType?: _starknetWalletType) {
     if (type === 'evm') emit('confirm')
 
-    if (type === 'starknet') {
-        if (!isStarknetWalletConnected && starknetWalletProviderName !== starknetWalletType) {
-            starknetProxy(starknetWalletType)
-        }
-    }
-
-    await WalletControl.connect(type)
-}
-
-async function starknetProxy(wallet: string) {
-    const maxWaitTime = 10000
-    let waitedTime = 0
-
-    let element
-
-    const getWalletElement = () => {
-        if (wallet === 'argent') {
-            return document.querySelector('ul > li')
-        }
-
-        if (wallet === 'braavos') {
-            return document.querySelector('ul > a')
-        }
-
-        return null
-    }
-
-    return new Promise<void>((resolve, reject) => {
-        const intervalId = setInterval(() => {
-            element = getWalletElement()
-
-            if (element) {
-                element.click()
-
-                clearInterval(intervalId)
-                resolve()
-            } else if (waitedTime >= maxWaitTime) {
-                clearInterval(intervalId)
-                reject()
-            } else {
-                waitedTime += 50
-            }
-        }, 50)
-    })
+    await WalletControl.connect(type, starknetWalletType)
 }
 
 const isDisabled = computed(() => {

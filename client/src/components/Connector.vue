@@ -49,7 +49,7 @@ const {
 
 onMounted(() => [
     // Starknet
-    Starknet.connect()
+    Starknet.toggleWallet()
 ])
 
 const chains = Config.chains
