@@ -11,6 +11,9 @@ import Starknet from './starknet.js'
 
 const DEV = import.meta.env.DEV
 
+const API_URL = `http://zerius.io:3000/api/collection`
+// const API_URL = DEV ? `http://localhost:3000/api/collection` : `http://zerius.io:3000/api/collection`
+
 export interface TxResult {
     result: boolean;
     msg?: string;
@@ -400,7 +403,7 @@ export default class Evm {
 
             if (DEV) console.log('FETCH COLLECTION DO', evmAddress, starknetAddress)
 
-            const response = await axios.post('http://localhost:3000/api/collection', { evmAddress, starknetAddress })
+            const response = await axios.post(API_URL, { evmAddress, starknetAddress })
 
             const data: CollectionItem[] = response.data || []
 
