@@ -18,6 +18,9 @@ const connectedWallet = computed(() => store.getters['evm/connectedWallet'])
 const selectedChain = computed(() => store.getters['evm/selectedChain'])
 const isCollectionNeedUpdate = computed(() => store.getters['evm/collection'])
 
+const evmConnectedWallet = computed(() => Evm.connectedWallet)
+const starknetConnectedWallet = computed(() => Starknet.connectedWallet)
+
 onMounted(async () => {
     await UTILS.wait(1000)
     await initCollection()
@@ -25,6 +28,16 @@ onMounted(async () => {
 
 watch(connectedWallet, async (newVal, oldVal) => {
     if (newVal && newVal !== oldVal) await fetchCollection()
+})
+
+watch(evmConnectedWallet, async (newVal, oldVal) => {
+    // console.log('EVM NEW', newVal?.accounts[0]?.address, oldVal?.accounts[0]?.address)
+    if (newVal?.accounts[0]?.address !== oldVal?.accounts[0]?.address) await fetchCollection()
+})
+
+watch(starknetConnectedWallet, async (newVal, oldVal) => {
+    // console.log('STARKN NEW', newVal, oldVal)
+    if (newVal !== oldVal) await fetchCollection()
 })
 
 // watch(selectedChain, async (newVal, oldVal) => {
@@ -61,7 +74,7 @@ const initCollection = async () => {
     }
 }
 
-const fetchCollection = async (item?: CollectionItem) => {
+async function fetchCollection(item?: CollectionItem) {
     let newItems = []
 
     if (item) {
@@ -70,11 +83,15 @@ const fetchCollection = async (item?: CollectionItem) => {
         newItems = await Evm.collection()
     }
 
-    // console.log('FETCH COLLECTION', newItems, collection.value)
+    // console.log('[FETCH COLLECTION]', newItems, collection.value)
 
-    const updatedCollection = _.unionBy(newItems, collection.value, 'id').flat().sort((a, b) => a.id - b.id)
+    let updatedCollection = newItems
 
-    // console.log('updatedCollection', updatedCollection)
+    if (newItems.length) {
+        updatedCollection = _.unionBy(newItems, collection.value, 'id').flat().sort((a, b) => a.id - b.id)
+    }
+
+    // console.log('[UPDATED COLLECTION]', updatedCollection)
 
     collection.value = updatedCollection
     saveToLocalStorage(updatedCollection)

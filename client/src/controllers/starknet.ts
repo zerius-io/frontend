@@ -125,7 +125,7 @@ export default class Starknet {
 
             if (walletToConnect) WALLET = await this.connect(walletToConnect)
 
-            if (DEV) console.log('WALLET res', WALLET)
+            if (DEV) console.log('WALLET RES', WALLET)
             return WALLET
         } catch (error) {
             if (DEV) console.log('STARKNET WALLET TOOGLE ERROR', error)
@@ -139,7 +139,7 @@ export default class Starknet {
             if (!WALLET.isConnected) {
                 RESULT = await WALLET?.enable({ starknetVersion: "v5" })
             } else {
-                console.log('WALL', WALLET)
+                if (DEV) console.log('STARKNET CONNECT', WALLET)
                 RESULT = WALLET
             }
 
