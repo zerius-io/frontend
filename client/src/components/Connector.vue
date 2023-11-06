@@ -58,6 +58,35 @@ const selectedChain = ref(null)
 const selectedChainRef = ref(null)
 const walletConnectRef = computed(() => store.state.evm.walletConnectRef)
 
+const selectedChainValue = computed(() => store.getters['evm/selectedChain'])
+// Evm
+const isEvmWalletConnected = computed(() => Evm.isWalletConnected)
+const evmConnectedWallet = computed(() => Evm.connectedWallet)
+// Starknet
+const isStarknetWalletConnected = computed(() => Starknet.isWalletConnected)
+const starknetConnectedWallet = computed(() => Starknet.connectedWallet)
+
+
+const isEvmWalletConnectedAndSelectedChain = computed(() => {
+    return isEvmWalletConnected.value && selectedChainValue.value.id !== null
+})
+
+const isStarknetWalletConnectedAndSelectedChain = computed(() => {
+    return isStarknetWalletConnected.value && selectedChainValue.value.id === null
+})
+
+const buttonLabel = computed(() => {
+    if (isEvmWalletConnectedAndSelectedChain.value) {
+        return formatAddress(evmConnectedWallet.value?.accounts[0]?.address)
+    } else if (isStarknetWalletConnectedAndSelectedChain.value) {
+        return formatAddress(starknetConnectedWallet.value)
+    } else if (walletConnectRef.value) {
+        return 'Connecting...'
+    } else {
+        return 'Connect wallet'
+    }
+})
+
 store.commit('evm/setSelectedChain', selectedChainRef.value?.selected)
 store.commit('evm/setWalletConnectRef', walletConnectRef.value)
 
@@ -101,9 +130,7 @@ patchOptions({
         <custom-select ref="selectedChainRef" :options="chains" v-model="selectedChain" @change="setChainById" />
 
         <button type="button" @click="open" :class="connectedWallet ? 'button' : 'button__full'">
-            {{ connectedWallet ? formatAddress(connectedWallet?.accounts[0]?.address) : walletConnectRef ?
-                'Connecting...' : 'Connect wallet'
-            }}
+            {{ buttonLabel }}
         </button>
 
         <ModalsContainer />

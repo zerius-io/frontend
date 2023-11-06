@@ -11,8 +11,9 @@ import Starknet from './starknet.js'
 
 const DEV = import.meta.env.DEV
 
-const API_URL = `http://zerius.io:3000/api/collection`
-// const API_URL = DEV ? `http://localhost:3000/api/collection` : `http://zerius.io:3000/api/collection`
+const API_URL = DEV ?
+    `http://localhost:3000/api/collection` :
+    `http://zerius.io:3000/api/collection`
 
 export interface TxResult {
     result: boolean;
