@@ -26,9 +26,9 @@ onMounted(async () => {
     await initCollection()
 })
 
-watch(connectedWallet, async (newVal, oldVal) => {
-    if (newVal && newVal !== oldVal) await fetchCollection()
-})
+// watch(connectedWallet, async (newVal, oldVal) => {
+//     if (newVal && newVal !== oldVal) await fetchCollection()
+// })
 
 watch(evmConnectedWallet, async (newVal, oldVal) => {
     // console.log('EVM NEW', newVal?.accounts[0]?.address, oldVal?.accounts[0]?.address)
@@ -87,7 +87,7 @@ async function fetchCollection(item?: CollectionItem) {
 
     let updatedCollection = newItems
 
-    if (newItems.length) {
+    if (newItems && newItems?.length) {
         updatedCollection = _.unionBy(newItems, collection.value, 'id').flat().sort((a, b) => a.id - b.id)
     }
 

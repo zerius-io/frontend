@@ -13,7 +13,7 @@ const DEV = import.meta.env.DEV
 
 const API_URL = DEV ?
     `http://localhost:3000/api/collection` :
-    `http://zerius.io:3000/api/collection`
+    `https://zerius.io/api/collection`
 
 export interface TxResult {
     result: boolean;
