@@ -54,6 +54,8 @@ onMounted(() => [
 
 const chains = Config.chains
 
+const STARKNET_CHAIN_ID = 2344859429196833
+
 const selectedChain = ref(null)
 const selectedChainRef = ref(null)
 const walletConnectRef = computed(() => store.state.evm.walletConnectRef)
@@ -68,11 +70,11 @@ const starknetConnectedWallet = computed(() => Starknet.connectedWallet)
 
 
 const isEvmWalletConnectedAndSelectedChain = computed(() => {
-    return isEvmWalletConnected.value && selectedChainValue.value.id !== null
+    return isEvmWalletConnected.value && selectedChainValue.value?.id != STARKNET_CHAIN_ID || null
 })
 
 const isStarknetWalletConnectedAndSelectedChain = computed(() => {
-    return isStarknetWalletConnected.value && selectedChainValue.value.id === null
+    return isStarknetWalletConnected.value && selectedChainValue.value?.id == STARKNET_CHAIN_ID
 })
 
 const buttonLabel = computed(() => {

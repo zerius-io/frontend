@@ -27,9 +27,9 @@ export default {
           return chain?.hide === undefined
         })
 
-        // console.log('CHAINS', CHAINS)
+        // console.log('CONFIG', { settings: data.settings, ipfs: data.ipfs, chains: CHAINS })
 
-        commit('setConfig', { ipfs: data.ipfs, chains: CHAINS })
+        commit('setConfig', { settings: data.settings, ipfs: data.ipfs, chains: CHAINS })
       } catch (error) {
         if (DEV) console.error('Error fetching the config:', error)
       }

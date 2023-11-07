@@ -1,161 +1,147 @@
-<script lang="ts">
-import { ref, computed, onMounted, watchEffect, watch } from 'vue'
+<script setup lang="ts">
+import { ref, computed, onMounted, watch, watchEffect } from 'vue'
 import { useStore } from 'vuex'
 
 import Config from '@/controllers/config'
 import Evm from '@/controllers/evm'
 
-export default {
-    props: {
-        options: {
-            type: Array,
-            required: true,
-        },
-        initialChainId: {
-            type: Number,
-            default: null
-        },
-        isolate: {
-            type: Boolean,
-            default: false
-        }
+const props = defineProps({
+    options: {
+        type: Array,
+        required: true,
     },
-    setup(props, { emit }) {
-        const store = useStore()
+    initialChainId: {
+        type: Number,
+        default: null,
+    },
+    isolate: {
+        type: Boolean,
+        default: false,
+    },
+})
 
-        const open = ref(false)
-        const selectRef = ref(null)
-        const selected = ref(Config.chains[0] || null)
+const emit = defineEmits(['change', 'input'])
 
-        const filteredOptions = computed(() => {
-            const walletSelectedChain = store.state.evm.selectedChain?.id || null
+const _CHAINS = Config.chains
+const _SETTINGS = Config.bridge
 
-            if (props.isolate) {
-                // TODO CHANGE
-                const block = Config.getChainById(walletSelectedChain)?.block || []
+const store = useStore()
 
-                if (block.includes(0)) {
+const open = ref(false)
+const selectRef = ref(null)
+const selected = ref(_CHAINS[0] || null)
 
-                }
+const filteredOptions = computed(() => {
+    const walletSelectedChain = store.state.evm.selectedChain?.id || null
 
-                return Config.chains.filter((option) =>
-                    !block.includes(option.id)
-                )
-            }
+    if (props.isolate) {
+        let SELECT_CHAINS = []
 
-            return Config.chains
-        })
-
-        const isDisabled = computed(() => {
-            if (props.isolate) {
-                if (props.initialChainId == null) return true
-                // const walletSelectedChain = store.state.evm.selectedChain?.id || null
-                // console.log(walletSelectedChain, walletSelectedChain === null)
-                // if (walletSelectedChain === null) return true
-
-                // const block = Config.getChainById(walletSelectedChain)?.block || []
-                // return block.includes(0)
-            }
-
-            return false
-        })
-
-        const selectRandomChain = () => {
-            const availableOptions = props.initialChainId !== null
-                ? filteredOptions.value.filter(option => option.id != props.initialChainId)
-                : filteredOptions.value
-
-            const randomIndex = Math.floor(Math.random() * availableOptions.length)
-            return availableOptions[randomIndex]
+        const block = Config.getChainById(walletSelectedChain)?.block || []
+        if (block.includes(0)) {
+            SELECT_CHAINS = []
+        } else {
+            SELECT_CHAINS = _CHAINS.filter((option) =>
+                !_SETTINGS.disabled.includes(option.id) && !block.includes(option.id)
+            )
         }
 
-        const selectOption = (option) => {
-            selected.value = option
-            open.value = false
+        return SELECT_CHAINS
+    }
 
-            if (!props.isolate) {
+    return _CHAINS
+})
+
+const isDisabled = computed(() => {
+    return props.isolate && _SETTINGS.disabled.includes(props.initialChainId)
+})
+
+const selectRandomChain = () => {
+    const availableOptions = props.initialChainId !== null
+        ? filteredOptions.value.filter(option => option.id != props.initialChainId)
+        : filteredOptions.value
+
+    const randomIndex = Math.floor(Math.random() * availableOptions.length)
+    return availableOptions[randomIndex]
+}
+
+const selectOption = (option) => {
+    selected.value = option
+    open.value = false
+
+    if (!props.isolate) {
+        store.commit('evm/setSelectedChain', selected.value)
+    }
+
+    emit('change')
+    emit('input', option)
+}
+
+const getImageSrc = (chain) => {
+    return `/img/chains/${chain.icon ? chain.icon : `${chain.label.toLowerCase()}.svg`}`
+}
+
+if (!props.isolate) {
+    watch(() => store.getters['evm/overwriteChain'], (newValue, oldValue) => {
+        const retryCount = ref(0)
+
+        const executeLogic = () => {
+            if (newValue !== oldValue) {
+                const chainObj = Config.getChainById(Evm.walletChainId)
+
+                if (chainObj) selected.value = chainObj
+                store.commit('evm/setOverwriteChain', false)
                 store.commit('evm/setSelectedChain', selected.value)
             }
-
-            emit('change')
-            emit('input', option)
         }
 
-        const getImageSrc = (chain) => {
-            return `/img/chains/${chain.icon ? chain.icon : `${chain.label.toLowerCase()}.svg`}`
+        const retryLogic = () => {
+            if (Evm.isWalletConnected || retryCount.value >= 10) {
+                if (!Evm.isWalletConnected) return
+
+                executeLogic()
+            } else {
+                retryCount.value++;
+                setTimeout(retryLogic, 500)
+            }
         }
 
-        onMounted(() => {
-            if (props.initialChainId !== null) {
-                selected.value = selectRandomChain()
-            }
-        })
+        retryLogic()
+    })
+}
 
-        if (!props.isolate) {
-            watch(() => store.getters['evm/overwriteChain'], (newValue, oldValue) => {
-                const retryCount = ref(0)
+onMounted(() => {
+    if (props.initialChainId !== null) {
+        selected.value = selectRandomChain()
+    }
+})
 
-                const executeLogic = () => {
-                    if (newValue !== oldValue) {
-                        const chainObj = Config.getChainById(Evm.walletChainId)
-
-                        if (chainObj) selected.value = chainObj
-                        store.commit('evm/setOverwriteChain', false)
-                        store.commit('evm/setSelectedChain', selected.value)
-                    }
-                }
-
-                const retryLogic = () => {
-                    if (Evm.isWalletConnected || retryCount.value >= 10) {
-                        if (!Evm.isWalletConnected) return
-
-                        executeLogic()
-                    } else {
-                        retryCount.value++;
-                        setTimeout(retryLogic, 500)
-                    }
-                }
-
-                retryLogic()
-            })
-        }
-
-        watchEffect(() => {
-            const handleClickOutside = (event) => {
-                if (selectRef.value && !selectRef.value.contains(event.target)) {
-                    open.value = false
-                }
-            }
-
-            document.addEventListener('click', handleClickOutside)
-
-            return () => {
-                document.removeEventListener('click', handleClickOutside)
-            }
-        })
-
-        return {
-            selected,
-            open,
-            filteredOptions,
-            selectOption,
-            getImageSrc,
-            selectRef,
-            isDisabled
+watchEffect(() => {
+    const handleClickOutside = (event) => {
+        if (selectRef.value && !selectRef.value.contains(event.target)) {
+            open.value = false
         }
     }
-}
+
+    document.addEventListener('click', handleClickOutside)
+
+    return () => {
+        document.removeEventListener('click', handleClickOutside)
+    }
+})
 </script>
 
 <template>
     <div class="select" @blur="open = false" :class="{ open: open, 'disabled-pointer': isDisabled }" ref="selectRef"
         :disabled="isDisabled">
+
         <div class="select__selected" :class="{ open: open, 'disabled-pointer': isDisabled }" @click="open = !open">
             <template v-if="selected">
                 <img :src="getImageSrc(selected)" class="select__icon" />
             </template>
             {{ selected.label }}
         </div>
+
         <div class="select__items" :class="{ select__hide: !open }">
             <div v-for="(option, i) of filteredOptions" :key="i" @click="selectOption(option)" class="select__items-item">
                 <img :src="getImageSrc(option)" class="select__icon" />
