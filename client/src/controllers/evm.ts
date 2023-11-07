@@ -218,7 +218,11 @@ export default class Evm {
             const selectedChain = store.getters['evm/selectedChain']
             if (selectedChain.id != chainId) await this.setChainById()
 
-            const _dstChainId = selectedChain.lzChain
+            const toChainConfig = Config.getChainById(toChain)
+            // if (DEV) console.log('toChainConfig', toChainConfig)
+
+            const _dstChainId = toChainConfig.lzChain
+            // if (DEV) console.log('_dstChainId', _dstChainId)
 
             const contractAddress = selectedChain.contract
 
