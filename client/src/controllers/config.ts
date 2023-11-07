@@ -67,8 +67,9 @@ export default class Config {
         // TODO REMOVE AFTER REWORK
         if (explorer.id == null) {
             chain = this.getChainByName('Starknet')
+        } else {
+            chain = this.getChainById(explorer.id)
         }
-        chain = this.getChainById(explorer.id)
 
         return chain.explorer ? `${chain.explorer}/tx/${explorer.hash}` : ''
     }

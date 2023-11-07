@@ -7,6 +7,7 @@ import Collectable from './Collectable.vue'
 import store from '@/store'
 import Evm, { CollectionItem } from '@/controllers/evm'
 import UTILS from '@/controllers/utils'
+import Starknet from '@/controllers/starknet'
 
 
 const STORAGE_NAME = 'ZeriusCollection'
@@ -17,13 +18,26 @@ const connectedWallet = computed(() => store.getters['evm/connectedWallet'])
 const selectedChain = computed(() => store.getters['evm/selectedChain'])
 const isCollectionNeedUpdate = computed(() => store.getters['evm/collection'])
 
+const evmConnectedWallet = computed(() => Evm.connectedWallet)
+const starknetConnectedWallet = computed(() => Starknet.connectedWallet)
+
 onMounted(async () => {
     await UTILS.wait(1000)
     await initCollection()
 })
 
-watch(connectedWallet, async (newVal, oldVal) => {
-    if (newVal && newVal !== oldVal) await fetchCollection()
+// watch(connectedWallet, async (newVal, oldVal) => {
+//     if (newVal && newVal !== oldVal) await fetchCollection()
+// })
+
+watch(evmConnectedWallet, async (newVal, oldVal) => {
+    // console.log('EVM NEW', newVal?.accounts[0]?.address, oldVal?.accounts[0]?.address)
+    if (newVal?.accounts[0]?.address !== oldVal?.accounts[0]?.address) await fetchCollection()
+})
+
+watch(starknetConnectedWallet, async (newVal, oldVal) => {
+    // console.log('STARKN NEW', newVal, oldVal)
+    if (newVal !== oldVal) await fetchCollection()
 })
 
 // watch(selectedChain, async (newVal, oldVal) => {
@@ -39,17 +53,28 @@ watch(isCollectionNeedUpdate, async (newVal, oldVal) => {
 
 const initCollection = async () => {
     const storedData = getFromLocalStorage()
-
     // console.log('storedData', storedData)
 
-    if (storedData && !isCollectionExpired(storedData.timestamp)) {
-        collection.value = storedData.collection
-    } else {
-        await fetchCollection()
+    if (Evm.isWalletConnected || Starknet.isWalletConnected) {
+        if (storedData && !isCollectionExpired(storedData.timestamp)) {
+            if (Evm.isWalletConnected && !Starknet.isWalletConnected) {
+                collection.value = storedData.collection.filter((item: CollectionItem) => item.chainId != null)
+            }
+
+            if (!Evm.isWalletConnected && Starknet.isWalletConnected) {
+                collection.value = storedData.collection.filter((item: CollectionItem) => item.chainId == null)
+            }
+
+            if (Evm.isWalletConnected && Starknet.isWalletConnected) {
+                collection.value = storedData.collection
+            }
+        } else {
+            await fetchCollection()
+        }
     }
 }
 
-const fetchCollection = async (item?: CollectionItem) => {
+async function fetchCollection(item?: CollectionItem) {
     let newItems = []
 
     if (item) {
@@ -58,11 +83,15 @@ const fetchCollection = async (item?: CollectionItem) => {
         newItems = await Evm.collection()
     }
 
-    // console.log('FETCH COLLECTION', newItems, collection.value)
+    // console.log('[FETCH COLLECTION]', newItems, collection.value)
 
-    const updatedCollection = _.unionBy(newItems, collection.value, 'id').flat().sort((a, b) => a.id - b.id)
+    let updatedCollection = newItems
 
-    // console.log('updatedCollection', updatedCollection)
+    if (newItems && newItems?.length) {
+        updatedCollection = _.unionBy(newItems, collection.value, 'id').flat().sort((a, b) => a.id - b.id)
+    }
+
+    // console.log('[UPDATED COLLECTION]', updatedCollection)
 
     collection.value = updatedCollection
     saveToLocalStorage(updatedCollection)

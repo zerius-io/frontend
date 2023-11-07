@@ -11,6 +11,10 @@ import Starknet from './starknet.js'
 
 const DEV = import.meta.env.DEV
 
+const API_URL = DEV ?
+    `http://localhost:3000/api/collection` :
+    `https://zerius.io/api/collection`
+
 export interface TxResult {
     result: boolean;
     msg?: string;
@@ -37,7 +41,7 @@ export default class Evm {
     }
 
     static get isWalletConnected() {
-        return !!this.connectedWallet?.label
+        return !!this.connectedWallet?.label || ''
     }
 
     static get walletAddress(): string {
@@ -77,6 +81,8 @@ export default class Evm {
             await this.setChainById()
 
             this.connectedWallet = connectedWallet.value
+
+            store.commit('evm/setCollection', null)
         } catch (error) {
             if (DEV) console.error('Error connecting EVM wallet:', error)
         } finally {
@@ -96,12 +102,12 @@ export default class Evm {
                 return
             }
 
-            if (DEV) console.log('SETTING', { wallet: this.connectedWallet.label, chainId: this.selectedChain.id })
+            if (DEV) console.log('SETTING', { wallet: this.connectedWallet?.label, chainId: this.selectedChain.id })
 
             if (this.selectedChain.id !== null) {
                 const { setChain } = useOnboard()
 
-                await setChain({ wallet: this.connectedWallet.label, chainId: this.selectedChain.id })
+                await setChain({ wallet: this.connectedWallet?.label, chainId: this.selectedChain.id })
             }
 
             store.commit('evm/setSelectedChain', this.selectedChain)
@@ -398,7 +404,7 @@ export default class Evm {
 
             if (DEV) console.log('FETCH COLLECTION DO', evmAddress, starknetAddress)
 
-            const response = await axios.post('http://localhost:3000/api/collection', { evmAddress, starknetAddress })
+            const response = await axios.post(API_URL, { evmAddress, starknetAddress })
 
             const data: CollectionItem[] = response.data || []
 

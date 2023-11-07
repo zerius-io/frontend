@@ -122,7 +122,8 @@
             "explorer": "https://starkscan.co/",
             "block": [
                 0
-            ]
+            ],
+            "new": true
         },
         {
             "id": 42161,
@@ -172,7 +173,7 @@
             "id": 250,
             "token": "FTM",
             "label": "Fantom",
-            "rpcUrl": "https://rpcapi.fantom.network",
+            "rpcUrl": "https://rpc.ankr.com/fantom",
             "lzChain": 112,
             "contract": "0x5188368a92B49F30f4Cf9bEF64635bCf8459c7A7",
             "explorer": "https://ftmscan.com/",
@@ -182,8 +183,7 @@
                 1116,
                 1666600000,
                 250
-            ],
-            "new": true
+            ]
         },
         {
             "id": 1101,
@@ -203,8 +203,7 @@
                 1666600000,
                 7700,
                 1101
-            ],
-            "new": true
+            ]
         },
         {
             "id": 1088,
@@ -223,7 +222,6 @@
                 42220,
                 1666600000
             ],
-            "new": true,
             "hide": true
         },
         {
@@ -245,7 +243,6 @@
                 42220,
                 7700
             ],
-            "new": true,
             "hide": true
         },
         {
@@ -272,8 +269,7 @@
                 7700,
                 1116,
                 42220
-            ],
-            "new": true
+            ]
         },
         {
             "id": 42220,
@@ -297,8 +293,7 @@
                 7700,
                 42220,
                 1116
-            ],
-            "new": true
+            ]
         },
         {
             "id": 1666600000,
@@ -320,8 +315,7 @@
                 7700,
                 250,
                 1666600000
-            ],
-            "new": true
+            ]
         },
         {
             "id": 7700,
@@ -341,8 +335,7 @@
                 8453,
                 59144,
                 7700
-            ],
-            "new": true
+            ]
         },
         {
             "id": 59144,

@@ -28,8 +28,15 @@ patchOptions({
 })
 
 const getChainIconSrc = (chainId: number) => {
-    const chain = Config.getChainById(chainId)
-    return `/img/chains/${chain?.icon ? chain.icon : `${chain.label.toLowerCase()}.svg`}`
+    let chain
+
+    if (chainId == null) {
+        chain = Config.getChainByName('Starknet')
+    } else {
+        chain = Config.getChainById(chainId)
+    }
+
+    return `/img/chains/${chain?.icon ? chain.icon : `${chain?.label.toLowerCase()}.svg`}`
 }
 
 const onImageError = (event) => {

@@ -7,9 +7,20 @@ import Collection, { CollectionItem } from './controllers/collection'
 const app = express()
 const PORT = process.env.PORT || 3000
 
-app.use(cors())  // Enable All CORS Requests
-app.use(helmet())  // Set security headers
-app.use(bodyParser.json())  // Parse JSON bodies
+const URL = 'https://zerius.io'
+
+if (process.env.DEV) {
+    app.use(cors())
+} else {
+    app.use(cors({
+        origin: URL,
+        methods: 'GET,POST',
+        allowedHeaders: ['Content-Type', 'Authorization']
+    }))
+}
+
+app.use(helmet())
+app.use(bodyParser.json())
 
 
 interface RateLimitData {
