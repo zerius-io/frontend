@@ -37,6 +37,8 @@ const emit = defineEmits<{
     (e: 'confirm'): void
 }>()
 
+const STARKNET_CHAIN_ID = 2344859429196833
+
 const selectedChain = ref(null)
 const selectedChainRef = ref(null)
 
@@ -100,10 +102,7 @@ async function connect(type: walletType, starknetWalletType?: _starknetWalletTyp
     await WalletControl.connect(type, starknetWalletType)
 }
 
-const isDisabled = computed(() => {
-    if (collectable.chainId == null) return true
-    return false
-})
+const isDisabled = computed(() => collectable.chainId === STARKNET_CHAIN_ID)
 </script>
 
 <template>

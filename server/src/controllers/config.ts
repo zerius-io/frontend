@@ -128,7 +128,7 @@ export const chains: _CHAIN[] = [
         "explorer": "https://etherscan.io"
     },
     {
-        "id": null,
+        "id": 2344859429196833,
         "token": "ETH",
         "label": "Starknet",
         "rpcUrl": "https://starknet-mainnet.public.blastapi.io",

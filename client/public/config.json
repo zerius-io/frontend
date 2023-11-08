@@ -1,4 +1,11 @@
 {
+    "settings": {
+        "bridge": {
+            "disabled": [
+                2344859429196833
+            ]
+        }
+    },
     "ipfs": {
         "1-500000": {
             "name": "Ethereum",
@@ -112,7 +119,7 @@
             "explorer": "https://etherscan.io"
         },
         {
-            "id": null,
+            "id": 2344859429196833,
             "token": "ETH",
             "label": "Starknet",
             "rpcUrl": "https://starknet-mainnet.public.blastapi.io",
@@ -120,6 +127,7 @@
             "lzChain": null,
             "contract": "0x043ba5e69eec55ce374e1ce446d16ee4223c1ba48c808d2dcd4e606f94ec9e15",
             "explorer": "https://starkscan.co/",
+            "noEVM": true,
             "block": [
                 0
             ],

@@ -11,6 +11,7 @@ export interface _CHAIN {
     contract: string
 
     testnet?: boolean
+    noEVM?: boolean
     block?: number[]
     new?: boolean
     hide?: boolean
@@ -30,6 +31,14 @@ export default class Config {
         return store.state.config
     }
 
+    static get settings() {
+        return this.data.config.settings
+    }
+
+    static get bridge() {
+        return this.settings.bridge
+    }
+
     static get chains(): _CHAIN[] {
         return this.data.config.chains
     }
@@ -41,7 +50,7 @@ export default class Config {
     static get chainsConnect(): ChainConnect[] {
         return this.chains
             .filter((chain: _CHAIN) => {
-                return chain.id !== null
+                return chain.noEVM == undefined
             })
             .map((chain: _CHAIN) => ({
                 id: chain.id,
@@ -62,24 +71,14 @@ export default class Config {
     }
 
     static getExplorerTxUrl(explorer: { id: number, hash: string }): string {
-        let chain: _CHAIN;
-
-        // TODO REMOVE AFTER REWORK
-        if (explorer.id == null) {
-            chain = this.getChainByName('Starknet')
-        } else {
-            chain = this.getChainById(explorer.id)
-        }
-
+        let chain: _CHAIN = this.getChainById(explorer.id)
         return chain.explorer ? `${chain.explorer}/tx/${explorer.hash}` : ''
     }
 
     static getIpfsUri(id: number): string {
         for (const key in this.ipfs) {
             const [start, end] = key.split('-').map(Number)
-            if (id >= start && id <= end) {
-                return `${this.ipfs[key].url}${id}.png`
-            }
+            if (id >= start && id <= end) return `${this.ipfs[key].url}${id}.png`
         }
 
         return ''

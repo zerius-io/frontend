@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, Ref } from 'vue'
 import _ from 'lodash'
 
 import Collectable from './Collectable.vue'
@@ -12,41 +12,35 @@ import Starknet from '@/controllers/starknet'
 
 const STORAGE_NAME = 'ZeriusCollection'
 
-const collection = ref([])
+const STARKNET_CHAIN_ID = 2344859429196833
 
-const connectedWallet = computed(() => store.getters['evm/connectedWallet'])
-const selectedChain = computed(() => store.getters['evm/selectedChain'])
+const collection: Ref<CollectionItem[]> = ref([])
+
 const isCollectionNeedUpdate = computed(() => store.getters['evm/collection'])
 
 const evmConnectedWallet = computed(() => Evm.connectedWallet)
 const starknetConnectedWallet = computed(() => Starknet.connectedWallet)
+
+const selectedChainValue = computed(() => store.getters['evm/selectedChain'])
 
 onMounted(async () => {
     await UTILS.wait(1000)
     await initCollection()
 })
 
-// watch(connectedWallet, async (newVal, oldVal) => {
-//     if (newVal && newVal !== oldVal) await fetchCollection()
-// })
-
 watch(evmConnectedWallet, async (newVal, oldVal) => {
-    // console.log('EVM NEW', newVal?.accounts[0]?.address, oldVal?.accounts[0]?.address)
     if (newVal?.accounts[0]?.address !== oldVal?.accounts[0]?.address) await fetchCollection()
 })
 
 watch(starknetConnectedWallet, async (newVal, oldVal) => {
-    // console.log('STARKN NEW', newVal, oldVal)
     if (newVal !== oldVal) await fetchCollection()
 })
 
-// watch(selectedChain, async (newVal, oldVal) => {
-//     await UTILS.wait(5000)
-//     if (newVal && newVal !== oldVal) await fetchCollection()
-// })
+watch(selectedChainValue, async (newVal, oldVal) => {
+    if (newVal !== oldVal) await fetchCollection(...collection.value)
+})
 
 watch(isCollectionNeedUpdate, async (newVal, oldVal) => {
-    // console.log('UPDATE', newVal)
     await fetchCollection(newVal)
 })
 
@@ -58,11 +52,11 @@ const initCollection = async () => {
     if (Evm.isWalletConnected || Starknet.isWalletConnected) {
         if (storedData && !isCollectionExpired(storedData.timestamp)) {
             if (Evm.isWalletConnected && !Starknet.isWalletConnected) {
-                collection.value = storedData.collection.filter((item: CollectionItem) => item.chainId != null)
+                collection.value = storedData.collection.filter((item: CollectionItem) => item.chainId != STARKNET_CHAIN_ID)
             }
 
             if (!Evm.isWalletConnected && Starknet.isWalletConnected) {
-                collection.value = storedData.collection.filter((item: CollectionItem) => item.chainId == null)
+                collection.value = storedData.collection.filter((item: CollectionItem) => item.chainId == STARKNET_CHAIN_ID)
             }
 
             if (Evm.isWalletConnected && Starknet.isWalletConnected) {
@@ -75,23 +69,28 @@ const initCollection = async () => {
 }
 
 async function fetchCollection(item?: CollectionItem) {
-    let newItems = []
-
-    if (item) {
-        newItems = [item]
-    } else {
-        newItems = await Evm.collection()
-    }
-
-    // console.log('[FETCH COLLECTION]', newItems, collection.value)
+    const newItems = (item) ? [item] : await Evm.collection()
 
     let updatedCollection = newItems
 
-    if (newItems && newItems?.length) {
-        updatedCollection = _.unionBy(newItems, collection.value, 'id').flat().sort((a, b) => a.id - b.id)
-    }
+    if (newItems && newItems.length) {
+        const selectedChainId = selectedChainValue.value?.id
 
-    // console.log('[UPDATED COLLECTION]', updatedCollection)
+        updatedCollection = _.unionBy(newItems, collection.value, 'id')
+            .flat()
+            .sort((a, b) => {
+                if (selectedChainId) {
+                    if (a.chainId === selectedChainId && b.chainId !== selectedChainId) {
+                        return -1
+                    }
+                    if (b.chainId === selectedChainId && a.chainId !== selectedChainId) {
+                        return 1
+                    }
+                }
+
+                return a.id - b.id
+            })
+    }
 
     collection.value = updatedCollection
     saveToLocalStorage(updatedCollection)
@@ -121,9 +120,15 @@ const getFromLocalStorage = () => {
 }
 
 const isCollectionExpired = (timestamp) => {
-    // Check if the timestamp is older than 1 hour
     return Date.now() - timestamp > 3600000
 }
+
+const countChains = computed(() => {
+    const chainIdsSet = new Set()
+    collection.value.forEach((item) => chainIdsSet.add(item.chainId))
+
+    return chainIdsSet.size
+})
 </script>
 
 <template>
@@ -134,9 +139,9 @@ const isCollectionExpired = (timestamp) => {
             </transition>
         </div>
 
-        <!-- <div style="margin: 1.5rem 0 auto">
-            {{ collection.length }} Minis
-        </div> -->
+        <div v-if="collection.length" style="margin: 1.5rem 0 auto">
+            Minis: {{ collection.length }} | Chains: {{ countChains }}
+        </div>
     </div>
 </template>
 

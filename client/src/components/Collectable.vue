@@ -2,7 +2,7 @@
 import { ModalsContainer, useModal } from 'vue-final-modal'
 import Modal from './Modal.vue'
 
-import Config from '@/controllers/config'
+import Config, { _CHAIN } from '@/controllers/config'
 
 import blank from '/img/blank.png'
 import arrow from '/img/arrow.svg'
@@ -28,14 +28,7 @@ patchOptions({
 })
 
 const getChainIconSrc = (chainId: number) => {
-    let chain
-
-    if (chainId == null) {
-        chain = Config.getChainByName('Starknet')
-    } else {
-        chain = Config.getChainById(chainId)
-    }
-
+    let chain: _CHAIN = Config.getChainById(chainId)
     return `/img/chains/${chain?.icon ? chain.icon : `${chain?.label.toLowerCase()}.svg`}`
 }
 

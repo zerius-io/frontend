@@ -1,14 +1,7 @@
 // OVERWRITE CONSOLE LOG
 const DEV = import.meta.env.DEV
 
-// const originalConsoleLog = console.log
-// const originalConsoleError = console.error
-// console.log = function (...args) {
-//     if (DEV) originalConsoleLog(...args)
-// }
-// console.error = function (...args) {
-//     if (DEV) originalConsoleError(...args)
-// }
+if (!DEV) console.log('%cZERIUS', 'color: black; background: yellow; font-size: 16px;')
 
 import { createApp } from 'vue'
 

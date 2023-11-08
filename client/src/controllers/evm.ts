@@ -352,47 +352,6 @@ export default class Evm {
         return new Promise(attemptCheck)
     }
 
-    /**
-     * @deprecated reuse in BE
-     */
-    static async getUri(chainId: number, tokenId: number, hash: string) {
-        try {
-            if (DEV) {
-                console.log('getUri', chainId, tokenId)
-            }
-
-            const contractAddress = Config.getContractForChain(chainId)
-
-            if (!this.web3 || !this.isWalletConnected || !contractAddress) return
-            const web3 = this.web3
-
-            const provider = new ethers.BrowserProvider(web3)
-            const signer = await provider.getSigner()
-            const owner = await signer.getAddress()
-
-            const result = await this.waitForConfirmation(provider, hash)
-            if (!result) {
-                if (DEV) {
-                    console.log('getUri tx still not confirmed', chainId, tokenId, hash)
-                }
-
-                return ''
-            }
-
-            const contract = new ethers.Contract(contractAddress, ABI, signer)
-
-            const id = Number(await contract.tokenOfOwnerByIndex(owner, tokenId))
-
-            return Config.getIpfsUri(id)
-        } catch (error) {
-            if (DEV) {
-                console.error('Error fetching Uri:', error)
-            }
-
-            return ''
-        }
-    }
-
     static async collection(): Promise<CollectionItem[]> {
         try {
             if (!this.isWalletConnected) return
