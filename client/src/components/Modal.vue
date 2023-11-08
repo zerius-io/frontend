@@ -111,7 +111,7 @@ const isDisabled = computed(() => collectable.chainId === STARKNET_CHAIN_ID)
         <div v-if="!walletConnect" class="">
             <h1>{{ !res ? title : bridgeOk ? 'Success!' : 'Something went wrong :(' }}</h1>
 
-            <custom-select v-if="bridgeCase" ref="selectedChainRef" class="    select-modal" :options="Config.chains"
+            <custom-select v-if="bridgeCase" ref="selectedChainRef" class="select-modal" :options="Config.chains"
                 v-model="selectedChain" :isolate="true" :initialChainId="collectable.chainId" />
 
             <div v-if="!afterBridge">

@@ -90,29 +90,27 @@ export default class Evm {
         }
     }
 
-    static async setChainById() {
-        // if (DEV) console.log('SET CHAIN')
+    static async setChainById(chainId?: number) {
+        if (DEV) console.log('SET CHAIN ID', 'param:', chainId, 'in wallet selected:', this.selectedChain.id)
+
         try {
             if (!this.isWalletConnected || !this.selectedChain) return
 
+            const CHANGE_TO_CHAIN = chainId ? chainId : this.selectedChain.id
+            if (CHANGE_TO_CHAIN === null) return
+
             const currentChainId = this.connectedWallet.provider.chainId
+            if (currentChainId === CHANGE_TO_CHAIN) return
+            if (currentChainId === this.toHex(CHANGE_TO_CHAIN)) return
 
-            if (currentChainId === this.toHex(this.selectedChain.id)) {
-                if (DEV) console.log('NOTHING TO CHANGE')
-                return
-            }
+            if (DEV) console.log('SET CHAIN ID', { wallet: this.connectedWallet?.label, chainId: CHANGE_TO_CHAIN })
 
-            if (DEV) console.log('SETTING', { wallet: this.connectedWallet?.label, chainId: this.selectedChain.id })
-
-            if (this.selectedChain.id !== null) {
-                const { setChain } = useOnboard()
-
-                await setChain({ wallet: this.connectedWallet?.label, chainId: this.selectedChain.id })
-            }
+            const { setChain } = useOnboard()
+            await setChain({ wallet: this.connectedWallet?.label, chainId: CHANGE_TO_CHAIN })
 
             store.commit('evm/setSelectedChain', this.selectedChain)
 
-            if (DEV) console.log(this.selectedChain)
+            if (DEV) console.log('SET SELECTED CHAIN', this.selectedChain)
         } catch (error) {
             if (DEV) console.error('Error switch chain:', error)
         }
@@ -137,7 +135,7 @@ export default class Evm {
                 await this.toggleWallet()
             }
 
-            this.setChainById()
+            await this.setChainById()
 
             const selectedChain = store.getters['evm/selectedChain']
 
@@ -210,19 +208,21 @@ export default class Evm {
     }
 
     static async bridge(tokenId: number, chainId: number, toChain: number, toast?: (message: string, data?: any) => void): Promise<TxResult> {
+        if (DEV) console.log('BRIDGE |', 'TOKEN ID:', tokenId, 'CHAIN from', chainId, 'to', toChain)
+
         const LZ_VERSION = 1
 
         try {
-            if (DEV) console.log('BRIDGE', 'id', tokenId, 'from chain', chainId, 'to', toChain)
+            await this.setChainById(chainId)
 
             const selectedChain = store.getters['evm/selectedChain']
             if (selectedChain.id != chainId) await this.setChainById()
 
             const toChainConfig = Config.getChainById(toChain)
-            // if (DEV) console.log('toChainConfig', toChainConfig)
+            if (DEV) console.log('toChainConfig', toChainConfig)
 
             const _dstChainId = toChainConfig.lzChain
-            // if (DEV) console.log('_dstChainId', _dstChainId)
+            if (DEV) console.log('_dstChainId', _dstChainId)
 
             const contractAddress = selectedChain.contract
 
@@ -319,13 +319,30 @@ export default class Evm {
             }
         } catch (error) {
             if (DEV) {
-                console.error('Error sent NFT:', error);
+                console.error('Error sent NFT:', error)
+                this.errorParser(error)
             }
 
             return {
                 result: false,
                 msg: 'Send failed',
             }
+        }
+    }
+
+    static errorParser(error: any) {
+        try {
+            let MSG = ''
+
+            if (DEV) {
+                console.log(error)
+                console.log(error?.info)
+                console.log(error?.reason)
+            }
+
+            return error?.reason
+        } catch (error) {
+            if (DEV) console.log('ERROR ON PARSER', error)
         }
     }
 
