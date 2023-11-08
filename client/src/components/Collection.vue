@@ -37,7 +37,7 @@ watch(starknetConnectedWallet, async (newVal, oldVal) => {
 })
 
 watch(selectedChainValue, async (newVal, oldVal) => {
-    if (newVal !== oldVal) await fetchCollection(...collection.value)
+    if (newVal !== oldVal) await fetchCollection(...collection.value || [])
 })
 
 watch(isCollectionNeedUpdate, async (newVal, oldVal) => {
@@ -139,7 +139,7 @@ const countChains = computed(() => {
             </transition>
         </div>
 
-        <div v-if="collection.length" style="margin: 1.5rem 0 auto">
+        <div v-if="collection?.length" style="margin: 1.5rem 0 auto">
             Minis: {{ collection.length }} | Chains: {{ countChains }}
         </div>
     </div>

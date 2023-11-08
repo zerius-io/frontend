@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, watchEffect } from 'vue'
+import { ref, computed, onMounted, watch, watchEffect, defineExpose } from 'vue'
 import { useStore } from 'vuex'
 
 import Config from '@/controllers/config'
@@ -28,8 +28,10 @@ const _SETTINGS = Config.bridge
 const store = useStore()
 
 const open = ref(false)
+
 const selectRef = ref(null)
 const selected = ref(_CHAINS[0] || null)
+defineExpose({ selected })
 
 const filteredOptions = computed(() => {
     const walletSelectedChain = store.state.evm.selectedChain?.id || null
