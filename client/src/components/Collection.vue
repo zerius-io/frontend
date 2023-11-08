@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, Ref } from 'vue'
 import _ from 'lodash'
 
 import Collectable from './Collectable.vue'
@@ -14,12 +14,14 @@ const STORAGE_NAME = 'ZeriusCollection'
 
 const STARKNET_CHAIN_ID = 2344859429196833
 
-const collection = ref([])
+const collection: Ref<CollectionItem[]> = ref([])
 
 const isCollectionNeedUpdate = computed(() => store.getters['evm/collection'])
 
 const evmConnectedWallet = computed(() => Evm.connectedWallet)
 const starknetConnectedWallet = computed(() => Starknet.connectedWallet)
+
+const selectedChainValue = computed(() => store.getters['evm/selectedChain'])
 
 onMounted(async () => {
     await UTILS.wait(1000)
@@ -27,17 +29,18 @@ onMounted(async () => {
 })
 
 watch(evmConnectedWallet, async (newVal, oldVal) => {
-    // console.log('EVM NEW', newVal?.accounts[0]?.address, oldVal?.accounts[0]?.address)
     if (newVal?.accounts[0]?.address !== oldVal?.accounts[0]?.address) await fetchCollection()
 })
 
 watch(starknetConnectedWallet, async (newVal, oldVal) => {
-    // console.log('STARKN NEW', newVal, oldVal)
     if (newVal !== oldVal) await fetchCollection()
 })
 
+watch(selectedChainValue, async (newVal, oldVal) => {
+    if (newVal !== oldVal) await fetchCollection(...collection.value)
+})
+
 watch(isCollectionNeedUpdate, async (newVal, oldVal) => {
-    // console.log('UPDATE', newVal)
     await fetchCollection(newVal)
 })
 
@@ -66,23 +69,28 @@ const initCollection = async () => {
 }
 
 async function fetchCollection(item?: CollectionItem) {
-    let newItems = []
-
-    if (item) {
-        newItems = [item]
-    } else {
-        newItems = await Evm.collection()
-    }
-
-    // console.log('[FETCH COLLECTION]', newItems, collection.value)
+    const newItems = (item) ? [item] : await Evm.collection()
 
     let updatedCollection = newItems
 
-    if (newItems && newItems?.length) {
-        updatedCollection = _.unionBy(newItems, collection.value, 'id').flat().sort((a, b) => a.id - b.id)
-    }
+    if (newItems && newItems.length) {
+        const selectedChainId = selectedChainValue.value?.id
 
-    // console.log('[UPDATED COLLECTION]', updatedCollection)
+        updatedCollection = _.unionBy(newItems, collection.value, 'id')
+            .flat()
+            .sort((a, b) => {
+                if (selectedChainId) {
+                    if (a.chainId === selectedChainId && b.chainId !== selectedChainId) {
+                        return -1
+                    }
+                    if (b.chainId === selectedChainId && a.chainId !== selectedChainId) {
+                        return 1
+                    }
+                }
+
+                return a.id - b.id
+            })
+    }
 
     collection.value = updatedCollection
     saveToLocalStorage(updatedCollection)
@@ -117,7 +125,6 @@ const isCollectionExpired = (timestamp) => {
 
 const countChains = computed(() => {
     const chainIdsSet = new Set()
-
     collection.value.forEach((item) => chainIdsSet.add(item.chainId))
 
     return chainIdsSet.size
