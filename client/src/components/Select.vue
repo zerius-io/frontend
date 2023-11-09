@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, watchEffect, defineExpose } from 'vue'
+import { ref, computed, onMounted, watch, watchEffect } from 'vue'
 import { useStore } from 'vuex'
 
 import Config from '@/controllers/config'
@@ -48,7 +48,7 @@ const filteredOptions = computed(() => {
             )
         }
 
-        return SELECT_CHAINS
+        return SELECT_CHAINS.filter((chain) => props.initialChainId !== chain.id)
     }
 
     return _CHAINS

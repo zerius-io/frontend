@@ -60,6 +60,10 @@ export default class Evm {
         return store.state.evm.selectedChain
     }
 
+    // static set selectedChain(value: boolean) {
+    //     store.commit('evm/setSelectedChain', value)
+    // }
+
     static get walletChainId(): number {
         return (this.isWalletConnected) ? parseInt(this.web3.chainId) : null
     }
@@ -91,28 +95,32 @@ export default class Evm {
     }
 
     static async setChainById(chainId?: number) {
-        if (DEV) console.log('SET CHAIN ID', 'param:', chainId, 'in wallet selected:', this.selectedChain.id)
+        if (DEV) console.log('[SET CHAIN ID]', 'SET', chainId, 'CURRENT', this.selectedChain.id)
 
         try {
             if (!this.isWalletConnected || !this.selectedChain) return
 
-            const CHANGE_TO_CHAIN = chainId ? chainId : this.selectedChain.id
-            if (CHANGE_TO_CHAIN === null) return
+            const CHANGE_TO_CHAIN_ID = chainId ? chainId : this.selectedChain.id;
+            const CURRENT_CHAIN_ID = this.connectedWallet.provider.chainId
 
-            const currentChainId = this.connectedWallet.provider.chainId
-            if (currentChainId === CHANGE_TO_CHAIN) return
-            if (currentChainId === this.toHex(CHANGE_TO_CHAIN)) return
+            if (CURRENT_CHAIN_ID === CHANGE_TO_CHAIN_ID || CURRENT_CHAIN_ID === this.toHex(CHANGE_TO_CHAIN_ID)) return
 
-            if (DEV) console.log('SET CHAIN ID', { wallet: this.connectedWallet?.label, chainId: CHANGE_TO_CHAIN })
+            let { setChain } = useOnboard()
+            await setChain({ wallet: this.connectedWallet?.label, chainId: CHANGE_TO_CHAIN_ID })
 
-            const { setChain } = useOnboard()
-            await setChain({ wallet: this.connectedWallet?.label, chainId: CHANGE_TO_CHAIN })
+            const provider = new ethers.BrowserProvider(this.web3)
+            const WALLET_CHAIN_ID = Number((await provider.getNetwork())?.chainId)
 
-            store.commit('evm/setSelectedChain', this.selectedChain)
+            if (WALLET_CHAIN_ID === CHANGE_TO_CHAIN_ID) {
+                if (DEV) console.log('SET CHAIN OK', CHANGE_TO_CHAIN_ID, 'IN WALLET', WALLET_CHAIN_ID)
 
-            if (DEV) console.log('SET SELECTED CHAIN', this.selectedChain)
+                store.commit('evm/setSelectedChain', Config.getChainById(CHANGE_TO_CHAIN_ID))
+                return
+            }
+
+            if (DEV) console.log('ERROR SET CHAIN TO', CHANGE_TO_CHAIN_ID, 'IN WALLET', WALLET_CHAIN_ID)
         } catch (error) {
-            if (DEV) console.error('Error switch chain:', error)
+            if (DEV) console.error('Error switching chain:', error)
         }
     }
 
@@ -208,21 +216,22 @@ export default class Evm {
     }
 
     static async bridge(tokenId: number, chainId: number, toChain: number, toast?: (message: string, data?: any) => void): Promise<TxResult> {
-        if (DEV) console.log('BRIDGE |', 'TOKEN ID:', tokenId, 'CHAIN from', chainId, 'to', toChain)
+        if (DEV) console.log('[BRIDGE]', 'TOKEN ID:', tokenId, 'CHAIN from', chainId, 'to', toChain)
 
         const LZ_VERSION = 1
 
         try {
-            await this.setChainById(chainId)
-
-            const selectedChain = store.getters['evm/selectedChain']
-            if (selectedChain.id != chainId) await this.setChainById()
+            let selectedChain = store.getters['evm/selectedChain']
+            if (selectedChain.id != chainId) {
+                await this.setChainById(chainId)
+                selectedChain = store.getters['evm/selectedChain']
+            }
 
             const toChainConfig = Config.getChainById(toChain)
-            if (DEV) console.log('toChainConfig', toChainConfig)
+            if (DEV) console.log('[BRIDGE] toChainConfig', toChainConfig)
 
             const _dstChainId = toChainConfig.lzChain
-            if (DEV) console.log('_dstChainId', _dstChainId)
+            // if (DEV) console.log('[BRIDGE] _dstChainId', _dstChainId)
 
             const contractAddress = selectedChain.contract
 
