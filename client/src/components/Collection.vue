@@ -5,13 +5,14 @@ import _ from 'lodash'
 import Collectable from './Collectable.vue'
 
 import store from '@/store'
-import Evm, { CollectionItem } from '@/controllers/evm'
+import Config from '@/controllers/config'
 import UTILS from '@/controllers/utils'
+import Evm, { CollectionItem } from '@/controllers/evm'
 import Starknet from '@/controllers/starknet'
-
 
 const STORAGE_NAME = 'ZeriusCollection'
 
+const _CHAINS = Config.chains
 const STARKNET_CHAIN_ID = 2344859429196833
 
 const collection: Ref<CollectionItem[]> = ref([])
@@ -76,17 +77,21 @@ async function fetchCollection(item?: CollectionItem) {
     if (newItems && newItems.length) {
         const selectedChainId = selectedChainValue.value?.id
 
+        const chainOrderMap = Config.chains.reduce((acc, chain, index) => {
+            acc[chain.id] = index
+            return acc
+        }, {})
+
         updatedCollection = _.unionBy(newItems, collection.value, 'id')
             .flat()
             .sort((a, b) => {
                 if (selectedChainId) {
-                    if (a.chainId === selectedChainId && b.chainId !== selectedChainId) {
-                        return -1
-                    }
-                    if (b.chainId === selectedChainId && a.chainId !== selectedChainId) {
-                        return 1
-                    }
+                    if (a.chainId === selectedChainId && b.chainId !== selectedChainId) return -1
+                    if (b.chainId === selectedChainId && a.chainId !== selectedChainId) return 1
                 }
+
+                if (chainOrderMap[a.chainId] < chainOrderMap[b.chainId]) return -1
+                if (chainOrderMap[a.chainId] > chainOrderMap[b.chainId]) return 1
 
                 return a.id - b.id
             })
