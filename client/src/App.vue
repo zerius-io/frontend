@@ -102,6 +102,10 @@ a {
   justify-content: space-between;
 }
 
+.column {
+  flex-direction: column;
+}
+
 // For Starknet connection
 .backdrop-blur-sm {
   display: none !important;
@@ -233,6 +237,58 @@ select {
   }
 }
 
+.slider-container {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.slider {
+  width: 50px;
+  height: 25px;
+  background-color: #ccc;
+  border-radius: 15px;
+  position: relative;
+  transition: background-color 0.3s;
+
+  &--disabled {
+    opacity: 0.5;
+    pointer-events: none;
+
+    background-color: #979797;
+  }
+
+}
+
+.slider--active {
+  background-color: #2C6EFF;
+}
+
+.slider-circle {
+  width: 20px;
+  height: 20px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2.5px;
+  left: 2.5px;
+  transition: transform 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slider-circle--active {
+  transform: translateX(25px);
+}
+
+.refuel-icon {
+  margin-left: -1rem;
+  user-select: none;
+
+  transition: opacity 0.5s;
+}
+
 .soon-tip {
   position: absolute;
   top: 10px;
@@ -302,5 +358,34 @@ select {
     border-radius: 0.25rem;
   }
 
+}
+
+input {
+  border-radius: 0.5rem;
+  border: 1px solid var(--blue, #2C6EFF);
+  background: var(--white, #FFF);
+
+  padding: 0.25rem 0.5rem;
+  gap: 0.625rem;
+
+  outline: none;
+}
+
+@keyframes loadingAnimation {
+  0% {
+    background-position: -200px 0;
+  }
+
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.loading {
+  animation: loadingAnimation 1.5s infinite;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0));
+  background-size: 200px 100%;
+  color: transparent;
+  display: inline-block;
 }
 </style>

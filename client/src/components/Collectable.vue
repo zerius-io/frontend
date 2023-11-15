@@ -43,7 +43,7 @@ const onImageError = (event) => {
         <div class="collectable-item-info flex">
             <img :src="getChainIconSrc(item?.chainId)" class="collectable-item-info-chain" />
             <div class="collectable-item-info-text">minis #{{ item?.id }}</div>
-            <img v-if="clickable" :src="arrow" />
+            <img v-if="clickable" :src="arrow" class="collectable-item-info-arrow" />
         </div>
 
         <ModalsContainer />
@@ -64,6 +64,12 @@ const onImageError = (event) => {
     width: 12.5rem;
 
     cursor: pointer;
+
+    transition: .3s ease-out;
+
+    &:hover {
+        transform: scale(1.05);
+    }
 
     &-info {
         justify-content: center;
@@ -103,6 +109,8 @@ const onImageError = (event) => {
 
         border-radius: 1.5rem 1.5rem 0rem 0rem;
         object-fit: cover;
+
+        user-select: none;
     }
 }
 
@@ -114,6 +122,20 @@ const onImageError = (event) => {
 
         &-img {
             height: 10rem;
+        }
+
+        &-info {
+            padding: 0.75rem;
+
+            font-size: 1rem;
+            text-align: left;
+
+            &-arrow {
+                display: none;
+                // position: absolute;
+                // top: 0;
+                // right: 0;
+            }
         }
     }
 }

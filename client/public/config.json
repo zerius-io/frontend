@@ -3,6 +3,20 @@
         "bridge": {
             "disabled": [
                 2344859429196833
+            ],
+            "refuel": {
+                "amount": {
+                    "2": [
+                        1,
+                        324,
+                        59144
+                    ]
+                }
+            }
+        },
+        "refuel": {
+            "disabled": [
+                2344859429196833
             ]
         }
     },
@@ -116,6 +130,8 @@
             "rpcUrl": "https://rpc.ankr.com/eth",
             "lzChain": 101,
             "contract": "0x178608fFe2Cca5d36f3Fc6e69426c4D3A5A74A41",
+            "refuelContract": "0x902f09715b6303d4173037652fa7377e5b98089e",
+            "lzRelayer": "0x902f09715b6303d4173037652fa7377e5b98089e",
             "explorer": "https://etherscan.io"
         },
         {
@@ -130,8 +146,7 @@
             "noEVM": true,
             "block": [
                 0
-            ],
-            "new": true
+            ]
         },
         {
             "id": 42161,
@@ -141,6 +156,8 @@
             "icon": "arbitrum.svg",
             "lzChain": 110,
             "contract": "0x250c34D06857b9C0A036d44F86d2c1Abe514B3Da",
+            "refuelContract": "0x412aea168aDd34361aFEf6a2e3FC01928Fba1248",
+            "lzRelayer": "0x177d36dbe2271a4ddb2ad8304d82628eb921d790",
             "explorer": "https://arbiscan.io"
         },
         {
@@ -150,6 +167,8 @@
             "rpcUrl": "https://mainnet.era.zksync.io",
             "lzChain": 165,
             "contract": "0x7da50bd0fb3c2e868069d9271a2aeb7ed943c2d6",
+            "refuelContract": "0x7dA50bD0fb3C2E868069d9271A2aeb7eD943c2D6",
+            "lzRelayer": "0x9923573104957bf457a3c4df0e21c8b389dd43df",
             "explorer": "https://explorer.zksync.io",
             "block": [
                 7777777,
@@ -168,6 +187,8 @@
             "rpcUrl": "https://mainnet.base.org",
             "lzChain": 184,
             "contract": "0x178608fFe2Cca5d36f3Fc6e69426c4D3A5A74A41",
+            "refuelContract": "0x9415AD63EdF2e0de7D8B9D8FeE4b939dd1e52F2C",
+            "lzRelayer": "0xcb566e3B6934Fa77258d68ea18E931fa75e1aaAa",
             "explorer": "https://basescan.org",
             "block": [
                 534352,
@@ -184,6 +205,8 @@
             "rpcUrl": "https://rpc.ankr.com/fantom",
             "lzChain": 112,
             "contract": "0x5188368a92B49F30f4Cf9bEF64635bCf8459c7A7",
+            "refuelContract": "0xBFd3539e4e0b1B29e8b08d17f30F1291C837a18E",
+            "lzRelayer": "0x52eea5c490fb89c7a0084b32feab854eeff07c82",
             "explorer": "https://ftmscan.com/",
             "block": [
                 7777777,
@@ -201,6 +224,8 @@
             "icon": "zkevm.svg",
             "lzChain": 158,
             "contract": "0x4c5AeDA35d8F0F7b67d6EB547eAB1df75aA23Eaf",
+            "refuelContract": "0xBAf5C493a4c364cBD2CA83C355E75F0ff7042945",
+            "lzRelayer": "0xa658742d33ebd2ce2f0bdff73515aa797fd161d9",
             "explorer": "https://zkevm.polygonscan.com/",
             "block": [
                 7777777,
@@ -220,6 +245,8 @@
             "rpcUrl": "https://metis-mainnet.public.blastapi.io",
             "lzChain": 151,
             "contract": "0x5188368a92B49F30f4Cf9bEF64635bCf8459c7A7",
+            "refuelContract": "0x1b07F1f4F860e72c9367e718a30e38130114AD22",
+            "lzRelayer": "0x5b19bd330a84c049b62d5b0fc2ba120217a18c1c",
             "explorer": "https://andromeda-explorer.metis.io/",
             "block": [
                 7777777,
@@ -239,6 +266,8 @@
             "rpcUrl": "https://moonbeam.publicnode.com",
             "lzChain": 126,
             "contract": "0x4c5aeda35d8f0f7b67d6eb547eab1df75aa23eaf",
+            "refuelContract": "0xb0bea3bB2d6EDDD2014952ABd744660bAeF9747d",
+            "lzRelayer": "0xcccdd23e11f3f47c37fc0a7c3be505901912c6cc",
             "explorer": "https://moonscan.io/",
             "block": [
                 1101,
@@ -260,6 +289,8 @@
             "rpcUrl": "https://rpc.coredao.org",
             "lzChain": 153,
             "contract": "0x5188368a92B49F30f4Cf9bEF64635bCf8459c7A7",
+            "refuelContract": "0xB47D82aA70f839dC27a34573f135eD6dE6CED9A5",
+            "lzRelayer": "0xfe7c30860d01e28371d40434806f4a8fcdd3a098",
             "explorer": "https://scan.coredao.org/",
             "block": [
                 1101,
@@ -286,6 +317,8 @@
             "rpcUrl": "https://forno.celo.org",
             "lzChain": 125,
             "contract": "0x4c5aeda35d8f0f7b67d6eb547eab1df75aa23eaf",
+            "refuelContract": "0xFF21d5a3a8e3E8BA2576e967888Deea583ff02f8",
+            "lzRelayer": "0x15e51701f245f6d5bd0fee87bcaf55b0841451b3",
             "explorer": "https://celoscan.io/",
             "block": [
                 1088,
@@ -310,6 +343,8 @@
             "rpcUrl": "https://api.harmony.one",
             "lzChain": 116,
             "contract": "0x5188368a92b49f30f4cf9bef64635bcf8459c7a7",
+            "refuelContract": "0x5B209E7c81DEaad0ffb8b76b696dBb4633A318CD",
+            "lzRelayer": "0x7cbd185f21bef4d87310d0171ad5f740bc240e26",
             "explorer": "https://explorer.harmony.one/",
             "block": [
                 1101,
@@ -332,6 +367,8 @@
             "rpcUrl": "https://canto.gravitychain.io",
             "lzChain": 159,
             "contract": "0x5188368a92b49f30f4cf9bef64635bcf8459c7a7",
+            "refuelContract": "0x51d3cba782Cad5427b3E1A2a85Fc5A19D2c975d7",
+            "lzRelayer": "0x5b19bd330a84c049b62d5b0fc2ba120217a18c1c",
             "explorer": "https://cantoscan.com/",
             "block": [
                 1101,
@@ -352,6 +389,8 @@
             "rpcUrl": "https://linea.drpc.org",
             "lzChain": 183,
             "contract": "0x5188368a92B49F30f4Cf9bEF64635bCf8459c7A7",
+            "refuelContract": "0x5B209E7c81DEaad0ffb8b76b696dBb4633A318CD",
+            "lzRelayer": "0xA658742d33ebd2ce2F0bdFf73515Aa797Fd161D9",
             "explorer": "https://lineascan.build/",
             "block": [
                 534352,
@@ -372,6 +411,8 @@
             "icon": "nova.svg",
             "lzChain": 175,
             "contract": "0x5188368a92B49F30f4Cf9bEF64635bCf8459c7A7",
+            "refuelContract": "0x3Fc5913D35105f338cEfcB3a7a0768c48E2Ade8E",
+            "lzRelayer": "0xa658742d33ebd2ce2f0bdff73515aa797fd161d9",
             "explorer": "https://nova.arbiscan.io/",
             "block": [
                 7777777,
@@ -390,6 +431,8 @@
             "rpcUrl": "https://rpc.ankr.com/optimism",
             "lzChain": 111,
             "contract": "0x178608fFe2Cca5d36f3Fc6e69426c4D3A5A74A41",
+            "refuelContract": "0x2076BDd52Af431ba0E5411b3dd9B5eeDa31BB9Eb",
+            "lzRelayer": "0x81e792e5a9003cc1c8bf5569a00f34b65d75b017",
             "explorer": "https://optimistic.etherscan.io"
         },
         {
@@ -399,6 +442,8 @@
             "rpcUrl": "https://rpc.ankr.com/polygon",
             "lzChain": 109,
             "contract": "0x178608fFe2Cca5d36f3Fc6e69426c4D3A5A74A41",
+            "refuelContract": "0x2ef766b59e4603250265EcC468cF38a6a00b84b3",
+            "lzRelayer": "0x75dc8e5f50c8221a82ca6af64af811caa983b65f",
             "explorer": "https://polygonscan.com"
         },
         {
@@ -409,6 +454,8 @@
             "icon": "bnb.svg",
             "lzChain": 102,
             "contract": "0x250c34D06857b9C0A036d44F86d2c1Abe514B3Da",
+            "refuelContract": "0x5B209E7c81DEaad0ffb8b76b696dBb4633A318CD",
+            "lzRelayer": "0xa27a2ca24dd28ce14fb5f5844b59851f03dcf182",
             "explorer": "https://bscscan.com",
             "block": [
                 7777777,
@@ -422,6 +469,8 @@
             "rpcUrl": "https://rpc.ankr.com/avalanche",
             "lzChain": 106,
             "contract": "0x178608fFe2Cca5d36f3Fc6e69426c4D3A5A74A41",
+            "refuelContract": "0x5B209E7c81DEaad0ffb8b76b696dBb4633A318CD",
+            "lzRelayer": "0xcd2e3622d483c7dc855f72e5eafadcd577ac78b4",
             "explorer": "https://snowtrace.io",
             "block": [
                 7777777,
@@ -435,6 +484,8 @@
             "rpcUrl": "https://rpc.zora.energy",
             "lzChain": 195,
             "contract": "0x178608fFe2Cca5d36f3Fc6e69426c4D3A5A74A41",
+            "refuelContract": "0x1fe2c567169d39CCc5299727FfAC96362b2Ab90E",
+            "lzRelayer": "",
             "explorer": "https://explorer.zora.energy/",
             "block": [
                 56,
@@ -461,6 +512,8 @@
             "icon": "scroll.png",
             "lzChain": 214,
             "contract": "0xEB22C3e221080eAD305CAE5f37F0753970d973Cd",
+            "refuelContract": "0xB074f8D92b930D3415DA6bA80F6D38f69ee4B9cf",
+            "lzRelayer": "",
             "explorer": "https://scrollscan.com",
             "block": [
                 7777777,
@@ -475,76 +528,6 @@
                 42220,
                 7700,
                 534352
-            ]
-        },
-        {
-            "id": 80001,
-            "token": "MATIC",
-            "label": "Mumbai",
-            "rpcUrl": "https://polygon-mumbai-bor.publicnode.com",
-            "icon": "polygon.svg",
-            "lzChain": 10109,
-            "contract": "0x75023ffe91dd4d67D0Ce5a4b0C376aa22708f1Fb",
-            "explorer": "https://mumbai.polygonscan.com/",
-            "testnet": true,
-            "block": [
-                1,
-                null,
-                42161,
-                137,
-                56,
-                43114,
-                10,
-                1101,
-                1088,
-                1284,
-                7777777,
-                534352,
-                8453,
-                324,
-                59144,
-                42170,
-                250,
-                42220,
-                1666600000,
-                7700,
-                1116,
-                42220
-            ]
-        },
-        {
-            "id": 84531,
-            "token": "ETH",
-            "label": "Base Goreli",
-            "rpcUrl": "https://base-goerli.publicnode.com",
-            "icon": "base.svg",
-            "lzChain": 10160,
-            "contract": "0x23e196CC4652bc272F80c04362a30b3db87F2cB9",
-            "explorer": "https://goerli.basescan.org/",
-            "testnet": true,
-            "block": [
-                1,
-                null,
-                42161,
-                137,
-                56,
-                43114,
-                10,
-                1101,
-                1088,
-                1284,
-                7777777,
-                534352,
-                8453,
-                324,
-                59144,
-                42170,
-                250,
-                42220,
-                1666600000,
-                7700,
-                1116,
-                42220
             ]
         }
     ]

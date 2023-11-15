@@ -9,7 +9,8 @@ export interface _CHAIN {
     explorer: string
     lzChain: number
     contract: string
-
+    refuelContract: string
+    lzRelayer: string
     testnet?: boolean
     noEVM?: boolean
     block?: number[]
@@ -62,11 +63,11 @@ export default class Config {
             }))
     }
 
-    static getChainById(chainId: number) {
+    static getChainById(chainId: number): _CHAIN {
         return this.chains.find(chain => chain.id == chainId)
     }
 
-    static getChainByName(chainName: string) {
+    static getChainByName(chainName: string): _CHAIN {
         return this.chains.find(chain => chain.label.toLowerCase() == chainName.toLowerCase())
     }
 

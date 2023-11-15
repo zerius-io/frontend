@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosResponse } from 'axios'
 import { ethers } from 'ethers'
 import { useOnboard } from '@web3-onboard/vue'
 
@@ -7,9 +7,17 @@ import store from '@/store'
 import Config from '@/controllers/config'
 
 import ABI from '@/assets/ABI/evm.json'
+
+import ABI_REFUEL from '@/assets/ABI/evm_refuel.json'
+import ABI_RELAYER from '@/assets/ABI/evm_relayer.json'
+
 import Starknet from './starknet.js'
+import Utils from './utils.js'
+import { _CHAIN } from './config.js'
 
 const DEV = import.meta.env.DEV
+
+const LZ_VERSION = 1
 
 const API_URL = DEV ?
     `http://localhost:3000/api/collection` :
@@ -95,7 +103,7 @@ export default class Evm {
     }
 
     static async setChainById(chainId?: number) {
-        if (DEV) console.log('[SET CHAIN ID]', 'SET', chainId, 'CURRENT', this.selectedChain.id)
+        if (DEV) console.log('[SET CHAIN ID]', `${chainId ? 'SET' + chainId : ''}`, 'CURRENT', this.selectedChain.id)
 
         try {
             if (!this.isWalletConnected || !this.selectedChain) return
@@ -215,10 +223,8 @@ export default class Evm {
         }
     }
 
-    static async bridge(tokenId: number, chainId: number, toChain: number, toast?: (message: string, data?: any) => void): Promise<TxResult> {
-        if (DEV) console.log('[BRIDGE]', 'TOKEN ID:', tokenId, 'CHAIN from', chainId, 'to', toChain)
-
-        const LZ_VERSION = 1
+    static async bridge(tokenId: number, chainId: number, toChain: number, refuel: boolean, toast?: (message: string, data?: any) => void): Promise<TxResult> {
+        if (DEV) console.log('[BRIDGE]', 'TOKEN ID:', tokenId, 'CHAIN from', chainId, 'to', toChain, 'refuel', refuel)
 
         try {
             let selectedChain = store.getters['evm/selectedChain']
@@ -227,7 +233,7 @@ export default class Evm {
                 selectedChain = store.getters['evm/selectedChain']
             }
 
-            const toChainConfig = Config.getChainById(toChain)
+            const toChainConfig: _CHAIN = Config.getChainById(toChain)
             if (DEV) console.log('[BRIDGE] toChainConfig', toChainConfig)
 
             const _dstChainId = toChainConfig.lzChain
@@ -244,8 +250,7 @@ export default class Evm {
                 }
             }
 
-            const web3 = this.web3
-            const provider = new ethers.BrowserProvider(web3)
+            const provider = new ethers.BrowserProvider(this.web3)
 
             const signer = await provider.getSigner()
             const sender = await signer.getAddress()
@@ -256,12 +261,38 @@ export default class Evm {
 
             const contract = new ethers.Contract(contractAddress, ABI, signer)
 
-            const MIN_DST_GAS = await contract.minDstGasLookup(_dstChainId, 1)
+            const MIN_DST_GAS = await contract.minDstGasLookup(_dstChainId, LZ_VERSION)
 
-            const adapterParams = ethers.solidityPacked(
-                ["uint16", "uint256"],
-                [LZ_VERSION, MIN_DST_GAS]
-            )
+            let adapterParams;
+            if (refuel) {
+                const REFUEL_SETTINGS = Config.bridge.refuel
+                if (DEV) console.log('REFUEL_SETTINGS', REFUEL_SETTINGS)
+                // FIX ME -  Utils.findIdInObj
+                const REFUEL_AMOUNT_USD = Utils.findIdInObj(REFUEL_SETTINGS.amount, toChainConfig.id)
+                if (DEV) console.log('REFUEL_AMOUNT_USD', REFUEL_AMOUNT_USD)
+
+                const price = await this.fetchPrice(toChainConfig.token)
+                if (DEV) console.log('price', price)
+
+                const REFUEL_AMOUNT = (REFUEL_AMOUNT_USD / price).toFixed(4)
+                if (DEV) console.log('REFUEL_AMOUNT', REFUEL_AMOUNT)
+
+                const refuelAmountEth = ethers.parseUnits(
+                    REFUEL_AMOUNT,
+                    18
+                )
+
+                adapterParams = ethers.solidityPacked(
+                    ["uint16", "uint256", "uint256", "address"],
+                    [2, MIN_DST_GAS, refuelAmountEth, sender]
+                )
+
+            } else {
+                adapterParams = ethers.solidityPacked(
+                    ["uint16", "uint256"],
+                    [LZ_VERSION, MIN_DST_GAS]
+                )
+            }
             if (DEV) console.log('adapterParams', adapterParams)
 
             const { nativeFee } = await contract.estimateSendFee(
@@ -378,9 +409,23 @@ export default class Evm {
         return new Promise(attemptCheck)
     }
 
+    static async getReceipt(txHash: string): Promise<any> {
+        try {
+            const provider = new ethers.BrowserProvider(this.web3)
+
+            const receipt = await provider.getTransactionReceipt(txHash)
+            return receipt
+        } catch (error) {
+            if (DEV) {
+                console.error('Failed to fetch transaction receipt', error)
+            }
+            return null
+        }
+    }
+
     static async collection(): Promise<CollectionItem[]> {
         try {
-            if (!this.isWalletConnected) return
+            if (!this.web3 || !this.isWalletConnected) return
             if (DEV) console.log('FETCH COLLECTION')
 
             let payload: any = {}
@@ -411,9 +456,8 @@ export default class Evm {
     static async _collection() { // *
         try {
             if (!this.web3 || !this.isWalletConnected) return
-            const web3 = this.web3
 
-            const provider = new ethers.BrowserProvider(web3)
+            const provider = new ethers.BrowserProvider(this.web3)
             const signer = await provider.getSigner()
             const owner = await signer.getAddress()
 
@@ -456,18 +500,201 @@ export default class Evm {
         }
     }
 
-    static async getReceipt(txHash: string): Promise<any> {
-        try {
-            const web3 = this.web3
-            const provider = new ethers.BrowserProvider(web3)
+    static async fetchPrice(symbol: string): Promise<number | null> {
+        const url: string = `https://min-api.cryptocompare.com/data/price?fsym=${symbol.toUpperCase()}&tsyms=USDT`
 
-            const receipt = await provider.getTransactionReceipt(txHash)
-            return receipt
-        } catch (error) {
-            if (DEV) {
-                console.error('Failed to fetch transaction receipt', error)
+        try {
+            const response: AxiosResponse = await axios.get(url, { timeout: 10000 })
+
+            if (response.status === 200 && response.data) {
+                return parseFloat(response.data.USDT) || 0
+            } else {
+                await new Promise(resolve => setTimeout(resolve, 1000))
+                return this.fetchPrice(symbol)
             }
+        } catch (error) {
+            if (DEV) console.error('Error fetching price:', error)
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            return this.fetchPrice(symbol)
+        }
+
+        // try {
+        //     const response: AxiosResponse = await axios.get(url, { timeout: 10000 })
+
+        //     if (response.status === 200 && response.data) {
+        //         return parseFloat(response.data.USDT) || 0
+        //     } else {
+        //         if (DEV) console.warn(`Retrying fetchPrice due to response status: ${response.status}`)
+
+        //         await new Promise(resolve => setTimeout(resolve, 1000))
+        //         const retryResponse: AxiosResponse = await axios.get(url, { timeout: 10000 })
+
+        //         if (retryResponse.status === 200 && retryResponse.data) {
+        //             return parseFloat(retryResponse.data.USDT) || 0
+        //         } else {
+        //             if (DEV) console.log(`Failed to fetch price on retry. Status: ${retryResponse.status}`)
+        //             return null
+        //         }
+        //     }
+        // } catch (error) {
+        //     console.error('Error fetching price:', error)
+        //     return null
+        // }
+    }
+
+    static async getBalance(normalize = false) {
+        try {
+            if (!this.web3 || !this.isWalletConnected) return
+
+            const provider = new ethers.BrowserProvider(this.web3)
+
+            const signer = await provider.getSigner()
+            const sender = await signer.getAddress()
+            const balance = await provider.getBalance(sender)
+
+            if (DEV) console.log('getBalance', (normalize ? ethers.formatEther(balance) : balance))
+            return (normalize ? ethers.formatEther(balance) : balance) || 0
+        } catch (error) {
+            if (DEV) console.error('getBalance ERROR', error)
+            return 0
+        }
+    }
+
+    static async getMaxTokenValueInDst(fromChainId: number, toChainId: number, normalize = false) {
+        try {
+            if (!this.web3 || !this.isWalletConnected) return
+
+            const provider = new ethers.BrowserProvider(this.web3)
+
+            const fromChainConfig: _CHAIN = Config.getChainById(fromChainId)
+            const toChainConfig: _CHAIN = Config.getChainById(toChainId)
+            if (DEV) console.log('selectedChain', fromChainConfig)
+            if (DEV) console.log('toChainConfig', toChainConfig)
+
+            if (DEV && !fromChainConfig.lzRelayer) console.log('NO RELAYER', fromChainConfig.label)
+            if (!fromChainConfig.lzRelayer) return null
+
+            const contract = new ethers.Contract(fromChainConfig.lzRelayer, ABI_RELAYER, provider)
+            if (DEV) console.log('getMaxTokenValueInDst', fromChainConfig.id, 'to', toChainId, toChainConfig.label, toChainConfig.lzChain)
+
+            const dstConfig = await contract.dstConfigLookup(toChainConfig.lzChain.toString(), "2")
+            if (DEV) console.log('getMaxTokenValueInDst', (normalize ? ethers.formatEther(dstConfig.dstNativeAmtCap) : dstConfig.dstNativeAmtCap) || null)
+
+            return (normalize ? ethers.formatEther(dstConfig.dstNativeAmtCap) : dstConfig.dstNativeAmtCap) || null
+        } catch (error) {
+            if (DEV) console.error('[Error] getMaxTokenValueInDst', error)
             return null
+        }
+    }
+
+    static formatEthers(value: bigint) {
+        return ethers.formatUnits(value, 'ether')
+    }
+
+    static async estimateRefuelFee(fromChainId: number, toChainId: number, amount: string): Promise<{ nativeFee: number, zroFee: number }> {
+        const ZERO = 0, TWO = 2
+
+        try {
+            if (!this.web3 || !this.isWalletConnected) return
+
+            const provider = new ethers.BrowserProvider(this.web3)
+            const signer = await provider.getSigner()
+            const sender = await signer.getAddress()
+
+            const fromChainConfig: _CHAIN = Config.getChainById(fromChainId)
+            const toChainConfig: _CHAIN = Config.getChainById(toChainId)
+            if (DEV) console.log('selectedChain', fromChainConfig)
+            if (DEV) console.log('toChainConfig', toChainConfig)
+
+            const contract = new ethers.Contract(fromChainConfig.refuelContract, ABI_REFUEL, signer)
+            if (DEV) console.log('contract', contract)
+
+            const MIN_DST_GAS = await contract.minDstGasLookup(toChainConfig.lzChain, ZERO)
+            if (DEV) console.log('MIN_DST_GAS', MIN_DST_GAS)
+
+            const payload = ethers.solidityPacked(
+                ["address"],
+                [toChainConfig.refuelContract]
+            )
+            if (DEV) console.log('payload', payload)
+
+            const adapterParams = ethers.solidityPacked(
+                ["uint16", "uint256", "uint256", "address"],
+                [TWO, MIN_DST_GAS, ethers.parseUnits(amount.toString(), 'ether'), sender]
+            )
+            if (DEV) console.log('adapterParams', toChainConfig.lzChain, adapterParams)
+
+            const { nativeFee, zroFee } = await contract.estimateSendFee(toChainConfig.lzChain, payload, adapterParams)
+
+            if (DEV) console.log('estimateRefuelFee', {
+                nativeFee: Number(ethers.formatUnits(nativeFee, 'ether')),
+                zroFee: Number(ethers.formatUnits(zroFee, 'ether'))
+            })
+            return {
+                nativeFee: Number(ethers.formatUnits(nativeFee, 'ether')),
+                zroFee: Number(ethers.formatUnits(zroFee, 'ether'))
+            }
+        } catch (error) {
+            if (DEV) console.error('[Error] [estimating refuel fee]', error)
+            return { nativeFee: null, zroFee: null }
+        }
+    }
+
+    static async refuel(fromChainId: number, toChainId: number, amount: string, toast?: (message: string, data?: any) => void): Promise<TxResult> {
+        if (DEV) console.log('[REFUEL]', 'from chain:', fromChainId, 'to chain', toChainId, 'amount', amount)
+
+        try {
+            let selectedChain = store.getters['evm/selectedChain']
+            if (selectedChain.id != fromChainId) {
+                await this.setChainById(fromChainId)
+                selectedChain = store.getters['evm/selectedChain']
+            }
+
+            const provider = new ethers.BrowserProvider(this.web3)
+            const signer = await provider.getSigner()
+            const sender = await signer.getAddress()
+
+            const fromChainConfig = Config.getChainById(fromChainId)
+            const toChainConfig = Config.getChainById(toChainId)
+
+            const contract = new ethers.Contract(fromChainConfig.refuelContract, ABI_REFUEL, signer)
+
+            const _dstChainId = toChainConfig.lzChain
+
+            const _toAddress = ethers.solidityPacked(
+                ["address"],
+                [toChainConfig.refuelContract]
+            )
+
+            const MIN_DST_GAS = await contract.minDstGasLookup(_dstChainId, 0)
+
+            const _adapterParams = ethers.solidityPacked(
+                ["uint16", "uint256", "uint256", "address"],
+                [2, MIN_DST_GAS, ethers.parseUnits(amount, 'ether'), sender]
+            )
+
+            const feeEstimate = await contract.estimateSendFee(_dstChainId, _toAddress, _adapterParams)
+            const nativeFee = BigInt(feeEstimate.nativeFee)
+
+            const tx = await contract.refuel(_dstChainId, _toAddress, _adapterParams, { value: nativeFee })
+
+            if (toast) {
+                toast("Refueling...", { id: fromChainId, hash: tx.hash })
+            }
+
+            const receipt = await tx.wait()
+
+            return {
+                result: receipt.status === 1,
+                msg: receipt.status === 1 ? 'Refuel successful' : 'Refuel failed',
+                receipt
+            }
+        } catch (error) {
+            console.error('Error during refuel:', error);
+            return {
+                result: false,
+                msg: 'Refuel failed',
+            };
         }
     }
 }
