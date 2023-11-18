@@ -492,9 +492,7 @@ export default class Evm {
 
             return ITEMS.flat().sort((a, b) => a.id - b.id)
         } catch (error) {
-            if (DEV) {
-                console.error('Error fetching collection:', error)
-            }
+            if (DEV) console.error('Error fetching collection:', error)
 
             return []
         }
@@ -690,7 +688,7 @@ export default class Evm {
                 receipt
             }
         } catch (error) {
-            console.error('Error during refuel:', error);
+            if (DEV) console.error('Error during refuel:', error);
             return {
                 result: false,
                 msg: 'Refuel failed',

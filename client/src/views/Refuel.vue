@@ -1,13 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUpdated, watchEffect } from 'vue'
-import { useStore } from 'vuex'
-
+import { ref, computed, watch, onMounted, watchEffect, reactive } from 'vue'
 import * as _ from 'lodash'
 
-import { VueFinalModal } from 'vue-final-modal'
 import { useToast } from 'vue-toastification'
-
-const store = useStore()
 
 import Config from '@/controllers/config'
 import Evm from '@/controllers/evm'
@@ -19,8 +14,6 @@ import Toast from '../components/Toast.vue'
 
 import switch_img from '/img/switch.svg'
 
-
-const res = ref(null)
 
 const toast = useToast()
 const showToast = (info, explorer = null) => toast({
@@ -35,86 +28,14 @@ const showToast = (info, explorer = null) => toast({
 const _CHAINS = Config.chains
 const _SETTINGS = Config.bridge
 
+const selectedChainFrom = ref(null)
+const selectedChainTo = ref(null)
 
-const isEvmWalletConnected = computed(() => Evm.isWalletConnected)
-const evmConnectedWallet = computed(() => Evm.connectedWallet)
-const selectedChain = computed(() => store.getters['evm/selectedChain'])
-
-
-const from = ref(null)
-const to = ref(null)
-
-const fromRef = ref(null)
-const toRef = ref(null)
-
-const isLoading = ref(true)
-
-const maxAmount = ref(0)
-
-const userBalance = ref(0)
-
-const refuelAmount = ref(null)
-const refueling = ref(false)
-
-const fromTokenPrice = ref(0)
-const toTokenPrice = ref(0)
-
-const estimatedTransferTime = ref('--')
-
-const refuelFee = ref('-- $')
-const refuelFeeValue = ref()
-const finalRefuelFeeValue = ref()
-
-const lzFee = ref('--')
-const lzFeeUSD = ref('')
-
-const expectedOutputValue = ref('--')
-const expectedOutputValueUSD = ref('')
-
-const getFromTokenSymbol = computed(() => {
-    return fromRef.value?.selected?.token || ''
-})
-
-const getToTokenSymbol = computed(() => {
-    return toRef.value?.selected?.token || ''
-})
-
-const placeholderValue = computed(() => `0 ${getFromTokenSymbol.value}`)
-
-const userBalanceCalcValue = computed(() => {
-    return normalizeValue(userBalance.value * fromTokenPrice.value, 2)
-})
-
-const isButtonDisabled = computed(() => {
-    if (selectedChain.value?.id !== fromRef.value?.selected.id) return false
-
-    return !isEvmWalletConnected.value ||
-        refuelAmount.value <= 0 ||
-        refueling.value ||
-        maxAmount.value <= 0 ||
-        refuelAmount.value > userBalance.value ||
-        refuelAmount.value > maxAmount.value
-})
-
-const buttonLabel = computed(() => {
-    if (!isEvmWalletConnected.value) return 'Connect wallet'
-    if (selectedChain.value.id !== fromRef.value?.selected.id) return `Switch network to ${fromRef.value?.selected.label}`
-
-    if (refuelAmount.value <= 0) return 'Enter amount'
-    if (refuelAmount.value > userBalance.value) return 'Insufficient Balance'
-    if (refuelAmount.value > maxAmount.value) return 'Amount too large'
-    if (isLoading.value === false && maxAmount.value <= 0) return `Can't bridge to ${toRef.value?.selected.label}`
-    if (refuelAmount.value <= userBalance.value) return 'Send'
-
-    if (refueling.value) return 'Sending...'
-})
-
+// FUNCTIONS
 const filteredOptions = computed(() => {
-    const fromSelectedChain = fromRef?.value?.selected?.id || null
-
     let SELECT_CHAINS = []
 
-    const block = Config.getChainById(fromSelectedChain)?.block || []
+    const block = Config.getChainById(state.refuel.chain.from)?.block || []
     if (block.includes(0)) {
         SELECT_CHAINS = []
     } else {
@@ -123,180 +44,109 @@ const filteredOptions = computed(() => {
         )
     }
 
-    return SELECT_CHAINS.filter((chain) => fromSelectedChain !== chain.id)
+    return SELECT_CHAINS.filter((chain) => state.refuel.chain.from !== chain.id)
 })
 
 const updateBalance = async () => {
-    console.log('updateBalance', isEvmWalletConnected.value, evmConnectedWallet.value)
-
-    if (isEvmWalletConnected.value) {
-        userBalance.value = normalizeValue(Number(await Evm.getBalance(true)))
-    }
+    if (state.user.connected) state.user.balance.raw = normalizeValue(Number(await Evm.getBalance(true)))
 }
 
-const updateTokenPrice = async () => {
-    if (getFromTokenSymbol.value === getToTokenSymbol.value) {
-        fromTokenPrice.value = await Evm.fetchPrice(getFromTokenSymbol.value)
-        toTokenPrice.value = fromTokenPrice.value
+const fetchTokenPrice = async (symbol: string) => {
+    return (symbol) ? await Evm.fetchPrice(symbol) : null
+}
+
+const updatePrices = async () => {
+    if (state.refuel.chain.isSameToken) {
+        state.refuel.chain.from.price = await Evm.fetchPrice(state.refuel.chain.from.token)
+        state.refuel.chain.to.price = state.refuel.chain.to.price
         return
     }
 
-    fromTokenPrice.value = await Evm.fetchPrice(getFromTokenSymbol.value)
-    toTokenPrice.value = await Evm.fetchPrice(getToTokenSymbol.value)
+    state.refuel.chain.from.price = await Evm.fetchPrice(state.refuel.chain.from.token)
+    state.refuel.chain.to.price = await Evm.fetchPrice(state.refuel.chain.to.token)
 }
 
-//      (refuelAmount.value > maxAmount.value) ? maxAmount.value : refuelAmount.value
-
-const calcValueInUSD = () => {
-    let resultValue = 0
-
-    if (getFromTokenSymbol.value === getToTokenSymbol.value) {
-        resultValue = parseFloat(refuelAmount.value || 0) * toTokenPrice.value
-    } else {
-        resultValue = (parseFloat(refuelAmount.value || 0) * fromTokenPrice.value) * toTokenPrice.value
-    }
-
-    console.log('calclValueInUSD', getFromTokenSymbol.value, getToTokenSymbol.value, (parseFloat(refuelAmount.value || 0), fromTokenPrice.value), toTokenPrice.value, (parseFloat(refuelAmount.value || 0) * fromTokenPrice.value) * toTokenPrice.value)
-
-    return resultValue && resultValue !== Infinity ? normalizeValue(resultValue) : '0'
+const updateMaxAmount = async () => {
+    state.refuel.amount.max.raw = Number(await Evm.getMaxTokenValueInDst(
+        state.refuel.chain.from.id,
+        state.refuel.chain.to.id,
+        true
+    ))
 }
 
-const calcOutputValue = async () => {
-    let outputValue = 0
+const updateFeeAmount = async () => {
+    const amount = normalizeValue(
+        state.refuel.chain.isSameToken ?
+            state.refuel.amount.user.raw :
+            (state.refuel.amount.user.raw * state.refuel.chain.from.price) / state.refuel.chain.to.price,
+        5
+    )
 
-    await getMaxAmountValue()
+    const fee = await Evm.estimateRefuelFee(state.refuel.chain.from.id, state.refuel.chain.to.id, amount.toString())
 
-    if (getFromTokenSymbol.value === getToTokenSymbol.value) {
-        outputValue = parseFloat(refuelAmount.value || 0)
-    } else {
-        outputValue = (parseFloat(refuelAmount.value || 0) * fromTokenPrice.value) * toTokenPrice.value
-    }
-
-    outputValue = (outputValue > maxAmount.value) ? maxAmount.value : outputValue
-
-    console.log('calcOutputValue', maxAmount.value, normalizeValue(outputValue), refuelFeeValue.value.nativeFee, outputValue - Number(refuelFeeValue.value.nativeFee))
-
-    if (getFromTokenSymbol.value === getToTokenSymbol.value) {
-        finalRefuelFeeValue.value = Number(refuelFeeValue.value.nativeFee) - outputValue
-    } else {
-        finalRefuelFeeValue.value = Number(refuelFeeValue.value.nativeFee)
-    }
-
-    return normalizeValue(outputValue - finalRefuelFeeValue.value)
+    state.refuel.fee.native.raw = fee.nativeFee
+    state.refuel.fee.lz.raw = Math.abs(state.refuel.amount.user.raw - fee.nativeFee)
 }
 
-const getMaxAmountValue = async () => {
-    maxAmount.value = Number(await Evm.getMaxTokenValueInDst(fromRef.value?.selected.id, toRef.value?.selected.id, true))
-}
+const updateInfo = _.debounce(async () => {
+    state.loading = true
 
-const calcFeeValueInUSD = (value: number) => {
-    console.log('calcFeeValueInUSD', fromTokenPrice.value, value)
-    return fromTokenPrice.value * value
-}
+    const amount = state.refuel.amount.user.raw
 
-const refuelFeeValueCalc = async () => {
-    refuelFeeValue.value = await Evm.estimateRefuelFee(fromRef.value?.selected.id, toRef.value?.selected.id, refuelAmount.value)
-}
-
-const maxAmountCalc = computed(() => {
-    let outputValue = maxAmount.value
-
-    if (getFromTokenSymbol.value !== getToTokenSymbol.value) {
-        outputValue = (maxAmount.value * toTokenPrice.value) / fromTokenPrice.value
-    }
-
-    return normalizeValue(outputValue || 0)
-})
-
-const maxAmountCalcUSD = computed(() => {
-    return normalizeValue(maxAmount.value * toTokenPrice.value)
-})
-
-const estimatedTransferTimeCalc = () => {
-    const transferTimeMap = {
-        137: '~5min',
-        1101: '~3min'
-    }
-
-    const selectedChainId = toRef.value?.selected?.id
-    return transferTimeMap[selectedChainId] ? transferTimeMap[selectedChainId] : '~1min'
-}
-
-const updateInfoValues = _.debounce(async () => {
-    if (refuelAmount.value > 0 && refuelAmount.value <= userBalance.value && refuelAmount.value <= maxAmount.value) {
-        console.log('============================== UPDATE ==============================', refuelAmount.value)
-        isLoading.value = true
-
-        await updateTokenPrice()
-
-
-        const valueInUSD = calcValueInUSD()
-
-        await refuelFeeValueCalc()
-        const outputValue = await calcOutputValue()
-
-        const refuelZroFeeValueInUSD = calcFeeValueInUSD(finalRefuelFeeValue.value)
-
-
-        if (maxAmount.value != 0) {
-            estimatedTransferTime.value = estimatedTransferTimeCalc()
-            refuelFee.value = `$0` // ${normalizeValue(refuelFeeValue.nativeFee)}
-
-            lzFee.value = `${normalizeValue(finalRefuelFeeValue.value)} ${getFromTokenSymbol.value}` // ${refuelFeeValue * fromTokenPrice.value}
-            lzFeeUSD.value = `$(${normalizeValue(refuelZroFeeValueInUSD, 2)})`
-
-            expectedOutputValue.value = `${normalizeValue(outputValue)} ${getToTokenSymbol.value}`
-            expectedOutputValueUSD.value = `${valueInUSD !== '0' ? `($${normalizeValue(valueInUSD, 2)})` : ''}`
-        } else {
-            defaultValues()
+    if (amount > 0) {
+        if (amount <= state.user.balance.raw &&
+            amount <= state.refuel.amount.max.raw) {
+            await updateFeeAmount()
         }
-
-
-        isLoading.value = false
+    } else {
+        state.refuel.fee.lz.raw = null
+        state.refuel.output.raw = null
     }
+
+    state.loading = false
 }, 500)
 
 const normalizeValue = (value: number, unit = 5) => {
     return value !== null ? parseFloat(value.toFixed(unit)) : 0
 }
 
-const defaultValues = (() => {
-    estimatedTransferTime.value = '--'
-    refuelFee.value = '--'
-    lzFee.value = `-- ${getToTokenSymbol.value}`
-    expectedOutputValue.value = `-- ${getToTokenSymbol.value}`
-})
+const switchChains = async () => {
+    if (selectedChainFrom.value && selectedChainTo.value) {
+        const temp = selectedChainFrom.value.selected
 
-const switchChains = () => {
-    const temp = fromRef.value.selected
-    fromRef.value.selected = toRef.value.selected
-    toRef.value.selected = temp
+        selectedChainFrom.value.selected = selectedChainTo.value.selected
+        selectedChainTo.value.selected = temp
 
-    updateData()
+        updateData()
+    }
 }
 
 const updateData = async () => {
-    if (isEvmWalletConnected.value) {
-        if (selectedChain.value && fromRef.value?.selected) fromRef.value.selected = selectedChain.value
-        await updateTokenPrice()
-        await updateBalance()
-        await updateInfoValues()
-        await getMaxAmountValue()
+    if (!state.user.connected) {
+        if (state.user.chain && state.refuel.chain.from) selectedChainFrom.value.selected = state.user.chain
+
+        await updateMaxAmount()
+        await updateInfo()
     }
 }
 
 const refuel = async () => {
-    if (selectedChain.value.id !== fromRef.value?.selected.id) {
-        await Evm.setChainById(fromRef.value?.selected.id)
+    if (state.user.chain.id !== selectedChainFrom?.value.selected.id) {
+        await Evm.setChainById(selectedChainFrom.selected.id)
         return
     }
 
-    refueling.value = true
+    state.refueling = true
 
-    const fromChainId = fromRef.value?.selected.id
-    const toChainId = toRef.value?.selected.id
+    const fromChainId = selectedChainFrom.value?.selected.id
+    const toChainId = selectedChainTo.value?.selected.id
 
-    const amount = refuelAmount.value.toString()
+    const amount = normalizeValue(
+        state.refuel.chain.isSameToken ?
+            state.refuel.amount.user.raw :
+            (state.refuel.amount.user.raw * state.refuel.chain.from.price) / state.refuel.chain.to.price,
+        5
+    ).toString()
 
     console.log(fromChainId, toChainId, amount)
 
@@ -309,46 +159,218 @@ const refuel = async () => {
 
     console.log('REFUEL', result, msg, receipt)
 
-    refueling.value = false
+    state.refueling = false
 
     showToast(msg, { id: fromChainId, hash: receipt?.hash })
 
     await updateBalance()
 }
 
-onMounted(() => {
-    updateData()
+const state = reactive({
+    loading: false,
+    refueling: false,
+    button: {
+        label: computed(() => {
+            if (!state.user.connected) return 'Connect wallet'
+            if (state.user.chain.id !== selectedChainFrom.value?.selected.id) return `Switch network to ${selectedChainFrom.value?.selected.label}`
+
+            if (!state.loading.value && state.refuel.amount.max.raw <= 0) return `Can't bridge to ${selectedChainTo.value?.selected.label}`
+
+            if (state.refuel.amount.user.raw <= 0) return 'Enter amount'
+            if (state.refuel.amount.user.raw > state.user.balance.raw) return 'Insufficient Balance'
+            if (state.refuel.amount.user.raw > state.refuel.amount.max.raw) return 'Amount too large'
+            if (!state.loading.value && state.refuel.fee.native.raw === null) return `Incorrect amount`
+
+            if (state.refuel.amount.user.raw <= state.user.balance.raw) return 'Send'
+            if (state.refueling) return 'Sending...'
+        }),
+        disabled: computed(() =>
+            !state.user.connected ||
+            state.user.chain.id !== state.refuel.chain.from.id ||
+            state.loading ||
+            state.refuel.amount.user.raw <= 0 ||
+            state.refuel.amount.max.raw <= 0 ||
+            state.refuel.fee.native.raw === null ||
+            state.refuel.amount.user.raw > state.user.balance.raw ||
+            state.refuel.amount.user.raw > state.refuel.amount.max.raw ||
+            state.refueling
+        ),
+    },
+    input: {
+        placeholder: computed(() => `0 ${state.chain?.from?.label || 'ETH'}`),
+        disabled: computed(() =>
+            !state.user.connected ||
+            state.refueling
+        )
+    },
+    user: {
+        connected: computed(() => Evm.isWalletConnected),
+        wallet: computed(() => Evm.connectedWallet),
+        chain: computed(() => Evm.selectedChain),
+        balance: {
+            raw: null,
+            USD: computed(() => {
+                const USD = normalizeValue(state.user.balance.raw * state.refuel.chain.from.price)
+                return USD !== 0 ? `$(${USD})` : null
+            }),
+            output: computed(() => normalizeValue(state.user.balance.raw))
+        }
+    },
+    refuel: {
+        chain: {
+            isSameToken: computed(() => {
+                return state.refuel.chain.from.token === state.refuel.chain.to.token
+            }),
+            from: computed(() => {
+                const chain = selectedChainFrom.value?.selected || { id: null, token: null, label: '-', price: null }
+                if (chain.token) fetchTokenPrice(chain.token).then(price => chain.price = price)
+                return chain
+            }),
+            to: computed(() => {
+                const chain = selectedChainTo.value?.selected || { id: null, token: null, label: '-', price: null }
+                if (chain.token) fetchTokenPrice(chain.token).then(price => chain.price = price)
+                return chain
+            })
+        },
+        amount: {
+            max: {
+                raw: null,
+                USD: computed(() => {
+                    const USD = normalizeValue(state.refuel.amount.max.raw * state.refuel.chain.to.price)
+                    return USD !== 0 ? `$(${USD})` : null
+                }),
+                output: computed(() => {
+                    let output = 0
+
+                    if (state.refuel.amount.max.raw && state.user.connected) {
+                        output = normalizeValue(
+                            state.refuel.chain.isSameToken ?
+                                state.refuel.amount.max.raw :
+                                (state.refuel.amount.max.raw * state.refuel.chain.to.price) / state.refuel.chain.from.price,
+                            5
+                        )
+                    }
+
+                    return output
+                })
+            },
+            user: {
+                raw: null,
+                USD: computed(() => {
+                    const USD = normalizeValue(state.refuel.user.raw * state.refuel.chain.from.price, 2)
+                    return USD !== 0 ? `$(${USD})` : null
+                }),
+                output: computed(() => normalizeValue(state.refuel.user.raw))
+            }
+        },
+        fee: {
+            native: {
+                raw: null,
+                USD: computed(() => {
+                    const USD = normalizeValue(state.refuel.fee.native.raw * state.refuel.chain.from.price, 2)
+                    return USD !== 0 ? `$(${USD})` : null
+                }),
+                output: computed(() => `${state.refuel.fee.lz.raw ? '0' : '--'} ${state.refuel.chain.from.token}`)
+            },
+            lz: {
+                raw: null,
+                USD: computed(() => {
+                    const USD = normalizeValue(state.refuel.fee.lz.raw * state.refuel.chain.from.price, 2)
+                    return USD !== 0 ? `$(${USD})` : null
+                }),
+                output: computed(() => {
+                    let output = 0
+
+                    if (state.refuel.fee.lz.raw) output = normalizeValue(state.refuel.fee.lz.raw, output > 1 ? 4 : 5)
+
+                    return `${output !== 0 ? output : '--'} ${state.refuel.chain.from.token}`
+                })
+            },
+        },
+        output: {
+            raw: null,
+            USD: computed(() => {
+                const USD = normalizeValue(state.refuel.output.raw *
+                    (state.refuel.chain.isSameToken ? state.refuel.chain.from.price : state.refuel.chain.to.price),
+                    2)
+
+                return USD !== 0 ? `$(${USD})` : null
+            }),
+            output: computed(() => {
+                let output = 0
+
+                if (state.refuel.amount.user.raw && state.user.connected) {
+                    output = state.refuel.chain.isSameToken ?
+                        state.refuel.amount.user.raw :
+                        (state.refuel.amount.user.raw * state.refuel.chain.from.price) / state.refuel.chain.to.price
+
+                    output = normalizeValue(output, output > 1 ? 4 : 5)
+
+                    state.refuel.output.raw = output
+                }
+
+                return `${output ? output : '--'} ${state.refuel.chain.to.token}`
+            })
+        },
+        time: computed(() => {
+            if (!state.refuel.amount.max.raw) return '--'
+
+            const transferTimeMap = {
+                137: '~5min',
+                1101: '~3min'
+            }
+
+            if (transferTimeMap[state.refuel.chain.from.id]) return transferTimeMap[state.refuel.chain.from.id]
+            if (transferTimeMap[state.refuel.chain.to.id]) return transferTimeMap[state.refuel.chain.to.id]
+            return '~1min'
+        })
+    }
 })
 
 
-watch(isEvmWalletConnected, (newValue) => {
-    if (newValue) {
-        updateData()
-    }
-}, { immediate: true })
-
+onMounted(() => {
+    if (state.user.chain) selectedChainFrom.value.selected = state.user.chain
+})
 
 watchEffect(() => {
-    updateInfoValues()
+    if (state.user.chain && selectedChainFrom.value?.selected) {
+        selectedChainFrom.value.selected = state.user.chain
+    }
+
+    if (state.refuel.chain.from && state.refuel.chain.to) {
+        console.log('SELECTED', state.refuel.chain.to.label, state.refuel.chain.from.label)
+
+        updateBalance()
+        updateMaxAmount()
+        updateInfo()
+    }
 })
 
-watch(refuelAmount, async () => {
-    if (refuelAmount.value > 0 && refuelAmount.value <= userBalance.value) {
-        updateInfoValues()
-    } else {
-        defaultValues()
-    }
+watch(() => Evm.walletAddress, (newValue, oldValue) => {
+    if (newValue !== oldValue) updateData()
 }, { immediate: true })
 
-watch(selectedChain, (newValue, oldValue) => {
+watch(state.user.chain, (newValue, oldValue) => {
     if (newValue !== oldValue) {
-        if (fromRef.value?.selected) fromRef.value.selected = newValue
-        updateInfoValues()
+        if (selectedChainFrom.value?.selected) selectedChainFrom.value.selected = newValue
+        updateInfo()
     }
 })
 
-watch(() => toRef?.value?.selected, (newValue, oldValue) => {
-    if (newValue !== oldValue) updateInfoValues()
+watch(() => [state.refuel.chain.from.id, state.refuel.chain.to.id],
+    ([newFromId, newToId]) => {
+        if (newFromId) {
+            updateBalance()
+        }
+        if (newFromId && newToId) {
+            updateData()
+        }
+    },
+    { immediate: true }
+)
+
+watch(() => state.refuel.amount.user.raw, (newVal, oldVal) => {
+    if (state.user.connected) updateInfo()
 })
 </script>
 
@@ -359,16 +381,15 @@ watch(() => toRef?.value?.selected, (newValue, oldValue) => {
         <div class="refuel-header">
             <div class="flex column" style="justify-content: flex-start; align-items: flex-start;">
                 <div>From</div>
-                <custom-select ref="fromRef" class="select-modal" :options="Config.chains" v-model="from" :isolate="true"
-                    :initialChainId="selectedChain?.id" />
+                <custom-select ref="selectedChainFrom" class="select-modal" :options="Config.chains" :isolate="true" />
             </div>
 
             <img @click="switchChains" :src="switch_img" alt="switch" class="refuel-header-switch">
 
             <div class="flex column" style="justify-content: flex-start; align-items: flex-start;">
                 <div>To</div>
-                <custom-select ref="toRef" class="select-modal" :options="filteredOptions" v-model="to" :isolate="true"
-                    :initialChainId="selectedChain?.id" />
+                <custom-select ref="selectedChainTo" class="select-modal" :options="filteredOptions" :isolate="true"
+                    :initialChainId="state.user.chain.id" />
             </div>
         </div>
 
@@ -376,51 +397,52 @@ watch(() => toRef?.value?.selected, (newValue, oldValue) => {
             <div class="flex">
                 <div>Refuel amount</div>
                 <div class=flex>
-                    <div>Balance: {{ userBalance }}</div>
-                    <!-- <div v-if="userBalanceCalcValue" style="margin-left: .5rem;">(${{ userBalanceCalcValue }})</div> -->
+                    <div v-if="state.user.balance.output">Balance: {{ state.user.balance.output }}</div>
                 </div>
             </div>
 
             <div class="input-container">
-                <input v-model="refuelAmount" :placeholder="placeholderValue" type="number" min="0">
-                <button :disabled="userBalance <= 0" @click="() => refuelAmount = userBalance"
-                    :class="{ 'max-button': true, 'loading': isLoading }">MAX</button>
-            </div>
+                <input :disabled="state.input.disabled" v-model="state.refuel.amount.user.raw"
+                    :placeholder="state.input.placeholder" type="number">
 
-            <span class="info-value-max" v-if="maxAmountCalc">
-                Max refuel: {{ maxAmountCalc }}
-                <!-- <span v-if="maxAmountCalcUSD">(${{ maxAmountCalcUSD }})</span> -->
+                <button :disabled="state.user.balance.raw <= 0"
+                    :class="{ 'max-button': true, 'loading': state.loading }">MAX</button>
+            </div>
+            <span v-if="state.refuel.amount.max.output" class="info-value-max">
+                Max refuel: {{ state.refuel.amount.max.output }}
             </span>
         </div>
 
         <div class="refuel-info">
             <div class="info-item">
                 <span class="info-label">Estimated Transfer Time:</span>
-                <span :class="{ 'info-value': true, 'loading': isLoading }">{{ estimatedTransferTime }}</span>
+                <span :class="{ 'info-value': true, 'loading': state.loading }">{{ state.refuel.time }}</span>
             </div>
             <div class="info-item">
                 <span class="info-label">Refuel Fee:</span>
-                <span :class="{ 'info-value': true, 'loading': isLoading }">{{ refuelFee }}</span>
+                <span :class="{ 'info-value': true, 'loading': state.loading }">
+                    {{ state.refuel.fee.native.output }}
+                </span>
             </div>
             <div class="info-item">
                 <span class="info-label">LayerZero Fee:</span>
-                <span :class="{ 'info-value': true, 'loading': isLoading }">
-                    {{ lzFee }}
-                    <span class="info-value-usd">{{ lzFeeUSD }}</span>
+                <span :class="{ 'info-value': true, 'loading': state.loading }">
+                    {{ state.refuel.fee.lz.output }}
+                    <span class="info-value-usd">{{ state.refuel.fee.lz.USD }}</span>
                 </span>
             </div>
             <div class="info-item">
                 <span class="info-label">Expected Output:</span>
-                <span :class="{ 'info-value': true, 'loading': isLoading }">
-                    {{ expectedOutputValue }}
-                    <span class="info-value-usd">{{ expectedOutputValueUSD }}</span>
+                <span :class="{ 'info-value': true, 'loading': state.loading }">
+                    {{ state.refuel.output.output }}
+                    <span class="info-value-usd">{{ state.refuel.output.USD }}</span>
                 </span>
             </div>
         </div>
 
-        <button @click="refuel" :disabled="isButtonDisabled" class="button__full">
-            {{ buttonLabel }}
-            <Spinner v-if="refueling" />
+        <button @click="refuel" :disabled="state.button.disabled" class="button__full">
+            {{ state.button.label }}
+            <Spinner v-if="state.refueling" />
         </button>
     </div>
 </template>
@@ -459,20 +481,18 @@ watch(() => toRef?.value?.selected, (newValue, oldValue) => {
 
         &-switch {
             cursor: pointer;
-
             margin: 0 1rem;
             margin-top: 1rem;
+            transition: transform 0.3s ease;
 
             &:hover {
                 transform: rotate(180deg);
             }
 
             &:active {
-                transform: rotate(-180deg);
-                transition: .3s;
+                transform: rotate(360deg);
+                transition: transform 0.5s ease;
             }
-
-            transition: .3s;
         }
 
         .select,

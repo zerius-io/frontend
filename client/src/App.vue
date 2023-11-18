@@ -369,23 +369,29 @@ input {
   gap: 0.625rem;
 
   outline: none;
-}
 
-@keyframes loadingAnimation {
-  0% {
-    background-position: -200px 0;
-  }
-
-  100% {
-    background-position: calc(200px + 100%) 0;
+  &:disabled {
+    background: #ececec;
+    color: #292828;
   }
 }
 
 .loading {
-  animation: loadingAnimation 1.5s infinite;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0));
-  background-size: 200px 100%;
-  color: transparent;
-  display: inline-block;
+  background-color: #e2e5e7;
+  background-image:
+    linear-gradient(45deg,
+      rgba(#fff, 0),
+      rgba(#fff, 0.5),
+      rgba(#fff, 0));
+  background-size: 40px 100%;
+  background-repeat: no-repeat;
+  background-position: left -40px top 0;
+  animation: shine 1.5s ease infinite;
+}
+
+@keyframes shine {
+  to {
+    background-position: right -40px top 0;
+  }
 }
 </style>
