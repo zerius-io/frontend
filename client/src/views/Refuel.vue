@@ -106,6 +106,14 @@ const updateInfo = _.debounce(async () => {
     state.loading = false
 }, 500)
 
+const setMax = () => {
+    if (state.user.balance.raw > state.refuel.amount.max.output) {
+        state.refuel.amount.user.raw = state.refuel.amount.max.output
+    } else {
+        state.refuel.amount.user.raw = state.user.balance.raw
+    }
+}
+
 const normalizeValue = (value: number, unit = 5) => {
     return value !== null ? parseFloat(value.toFixed(unit)) : 0
 }
@@ -384,7 +392,7 @@ watch(() => state.refuel.amount.user.raw, (newVal, oldVal) => {
                 <custom-select ref="selectedChainFrom" class="select-modal" :options="Config.chains" :isolate="true" />
             </div>
 
-            <img @click="switchChains" :src="switch_img" alt="switch" class="refuel-header-switch">
+            <!-- <img @click="switchChains" :src="switch_img" alt="switch" class="refuel-header-switch"> -->
 
             <div class="flex column" style="justify-content: flex-start; align-items: flex-start;">
                 <div>To</div>
@@ -405,7 +413,7 @@ watch(() => state.refuel.amount.user.raw, (newVal, oldVal) => {
                 <input :disabled="state.input.disabled" v-model="state.refuel.amount.user.raw"
                     :placeholder="state.input.placeholder" type="number">
 
-                <button :disabled="state.user.balance.raw <= 0"
+                <button :disabled="state.user.balance.raw <= 0" @click="setMax"
                     :class="{ 'max-button': true, 'loading': state.loading }">MAX</button>
             </div>
             <span v-if="state.refuel.amount.max.output" class="info-value-max">
