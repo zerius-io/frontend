@@ -115,6 +115,16 @@ const switchChains = async () => {
 
         selectedChainFrom.value.selected = selectedChainTo.value.selected
         selectedChainTo.value.selected = temp
+
+        if (state.refuel.chain.from.id !== state.user.chain.id) {
+            state.refuel.chain.fallbackAmount = state.refuel.amount.user.raw
+            state.refuel.amount.user.raw = null
+        } else {
+            if (state.refuel.chain.fallbackAmount) {
+                state.refuel.amount.user.raw = state.refuel.chain.fallbackAmount
+                state.refuel.chain.fallbackAmount = null
+            }
+        }
     }
 }
 
@@ -216,7 +226,8 @@ const state = reactive({
         placeholder: computed(() => `0 ${state.chain?.from?.label || 'ETH'}`),
         disabled: computed(() =>
             !state.user.connected ||
-            state.refueling
+            state.refueling ||
+            state.refuel.chain.from.id !== state.user.chain.id
         )
     },
     user: {
@@ -229,7 +240,15 @@ const state = reactive({
                 const USD = normalizeValue(state.user.balance.raw * state.refuel.chain.from.price)
                 return USD !== 0 ? `$(${USD})` : null
             }),
-            output: computed(() => normalizeValue(state.user.balance.raw))
+            output: computed(() => {
+                let output = 0
+
+                if (state.user.connected && state.refuel.chain.from.id === state.user.chain.id) {
+                    output = normalizeValue(state.user.balance.raw)
+                }
+
+                return output ? output : null
+            })
         }
     },
     refuel: {
@@ -237,6 +256,7 @@ const state = reactive({
             isSameToken: computed(() => {
                 return state.refuel.chain.from.token === state.refuel.chain.to.token
             }),
+            fallbackAmount: null,
             from: computed(() => {
                 const chain = selectedChainFrom.value?.selected || { id: null, token: null, label: '-', price: null }
                 if (chain.token) fetchTokenPrice(chain.token).then(price => chain.price = price)
@@ -258,7 +278,9 @@ const state = reactive({
                 output: computed(() => {
                     let output = 0
 
-                    if (state.refuel.amount.max.raw && state.user.connected) {
+                    if (state.user.connected &&
+                        state.refuel.amount.max.raw &&
+                        state.refuel.chain.from.id === state.user.chain.id) {
                         output = normalizeValue(
                             state.refuel.chain.isSameToken ?
                                 state.refuel.amount.max.raw :
@@ -267,7 +289,7 @@ const state = reactive({
                         )
                     }
 
-                    return output
+                    return output && output !== Infinity ? output : null
                 })
             },
             user: {
