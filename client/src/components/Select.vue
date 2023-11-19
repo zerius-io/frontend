@@ -118,6 +118,12 @@ onMounted(() => {
     }
 })
 
+watch(() => store.state.evm.selectedChain, (newChain) => {
+    if (newChain) {
+        selected.value = newChain
+    }
+}, { immediate: true })
+
 watchEffect(() => {
     const handleClickOutside = (event) => {
         if (selectRef.value && !selectRef.value.contains(event.target)) {
@@ -127,9 +133,7 @@ watchEffect(() => {
 
     document.addEventListener('click', handleClickOutside)
 
-    return () => {
-        document.removeEventListener('click', handleClickOutside)
-    }
+    return () => document.removeEventListener('click', handleClickOutside)
 })
 </script>
 

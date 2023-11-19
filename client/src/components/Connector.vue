@@ -101,8 +101,13 @@ const formatAddress = (address) => Evm.formatAddress(address)
 //     Evm.setChainById()
 // })
 
-onMounted(() => {
-    store.commit('evm/setOverwriteChain', true)
+watch(() => Evm.connectedWallet, async (newWallet, oldWallet) => {
+    if (oldWallet === null) return
+
+    if (newWallet?.chains?.[0]?.id !== oldWallet?.chains?.[0]?.id) {
+        // console.log('CONNECTED WALLET', newWallet, oldWallet)
+        Evm.setChainById(parseInt(newWallet?.chains?.[0]?.id, 16))
+    }
 })
 
 // MODAL
@@ -124,6 +129,10 @@ patchOptions({
         ...modalOptions,
         close
     }
+})
+
+onMounted(() => {
+    store.commit('evm/setOverwriteChain', true)
 })
 </script>
 
