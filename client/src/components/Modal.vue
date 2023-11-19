@@ -11,8 +11,8 @@ import Config from '@/controllers/config'
 import Evm from '@/controllers/evm'
 import Starknet, { _starknetWalletType } from '@/controllers/starknet'
 
-import CustomSelect from "./Select.vue"
-import Collectable from './Collectable.vue'
+import CustomSelect from '@/components/Select.vue'
+import Collectable from '@/components/Collectable.vue'
 
 import Spinner from '../components/Spinner.vue'
 import Toast from '../components/Toast.vue'
@@ -20,6 +20,8 @@ import Toast from '../components/Toast.vue'
 // IMG
 import ok_img from '/img/ok.svg'
 import error_img from '/img/error.svg'
+
+import gas_icon from '/img/gas.svg'
 
 import icon_metamask from '/img/wallets/metamask.png'
 import icon_argent from '/img/wallets/argent.png'
@@ -43,6 +45,12 @@ const selectedChain = ref(null)
 const selectedChainRef = ref(null)
 
 const bridging = ref(false)
+const refuelEnabled = ref(false)
+
+function toggleRefuel() {
+    if (!bridging.value) refuelEnabled.value = !refuelEnabled.value
+}
+
 const res = ref(null)
 
 const toast = useToast()
@@ -64,6 +72,7 @@ async function bridge() {
         collectable.id,
         collectable.chainId,
         chainId,
+        refuelEnabled.value,
         showToast
     )
     res.value = { result, msg, receipt }
@@ -117,10 +126,24 @@ const isDisabled = computed(() => collectable.chainId === STARKNET_CHAIN_ID)
             <div v-if="!afterBridge">
                 <Collectable :item="collectable" :clickable="false" />
 
-                <button v-if="bridgeCase" @click="bridge" :disabled="isDisabled || bridging" class="button__full">
-                    {{ bridging ? 'Sending' : 'Send' }}
-                    <Spinner v-if="bridging" />
-                </button>
+                <div class="flex" style="flex-direction: column;">
+                    <div v-if="bridgeCase" class="flex" style="margin: .4rem auto .8rem auto">
+                        <div style="margin: 0 1rem 0 0; font-size: 1.1rem; font-weight: 600;">Enable refuel</div>
+                        <div class="slider-container" @click="toggleRefuel">
+                            <div class="slider"
+                                :class="{ 'slider--active': refuelEnabled, 'slider--disabled': isDisabled || bridging }">
+                                <div class="slider-circle" :class="{ 'slider-circle--active': refuelEnabled }">
+                                    <img v-if="refuelEnabled" class="refuel-icon" alt="refuel" :src="gas_icon" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button v-if="bridgeCase" @click="bridge" :disabled="isDisabled || bridging" class="button__full">
+                        {{ bridging ? 'Sending' : 'Send' }}
+                        <Spinner v-if="bridging" />
+                    </button>
+                </div>
             </div>
             <div v-else>
                 <img class="status" alt="status" :src="bridgeOk ? ok_img : error_img" />

@@ -93,13 +93,13 @@ store.commit('evm/setSelectedChain', selectedChainRef.value?.selected)
 store.commit('evm/setWalletConnectRef', walletConnectRef.value)
 
 const toggleWallet = async () => Evm.toggleWallet()
-const setChainById = () => Evm.setChainById()
 const formatAddress = (address) => Evm.formatAddress(address)
 
-watch(selectedChainRef, (newValue, oldValue) => {
-    store.commit('evm/setSelectedChain', newValue?.selected)
-    setChainById()
-})
+// watch(selectedChainRef, (newValue, oldValue) => {
+//     console.log('UP UP UP', newValue, oldValue)
+//     store.commit('evm/setSelectedChain', newValue?.selected)
+//     Evm.setChainById()
+// })
 
 onMounted(() => {
     store.commit('evm/setOverwriteChain', true)
@@ -129,7 +129,7 @@ patchOptions({
 
 <template>
     <div style="display: flex; justify-content: space-between;">
-        <custom-select ref="selectedChainRef" :options="chains" v-model="selectedChain" @change="setChainById" />
+        <custom-select ref="selectedChainRef" :options="chains" v-model="selectedChain" @change="Evm.setChainById()" />
 
         <button type="button" @click="open" :class="connectedWallet ? 'button' : 'button__full'">
             {{ buttonLabel }}

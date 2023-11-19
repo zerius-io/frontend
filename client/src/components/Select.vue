@@ -17,7 +17,7 @@ const props = defineProps({
     isolate: {
         type: Boolean,
         default: false,
-    },
+    }
 })
 
 const emit = defineEmits(['change', 'input'])

@@ -102,6 +102,10 @@ a {
   justify-content: space-between;
 }
 
+.column {
+  flex-direction: column;
+}
+
 // For Starknet connection
 .backdrop-blur-sm {
   display: none !important;
@@ -233,6 +237,58 @@ select {
   }
 }
 
+.slider-container {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.slider {
+  width: 50px;
+  height: 25px;
+  background-color: #ccc;
+  border-radius: 15px;
+  position: relative;
+  transition: background-color 0.3s;
+
+  &--disabled {
+    opacity: 0.5;
+    pointer-events: none;
+
+    background-color: #979797;
+  }
+
+}
+
+.slider--active {
+  background-color: #2C6EFF;
+}
+
+.slider-circle {
+  width: 20px;
+  height: 20px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2.5px;
+  left: 2.5px;
+  transition: transform 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slider-circle--active {
+  transform: translateX(25px);
+}
+
+.refuel-icon {
+  margin-left: -1rem;
+  user-select: none;
+
+  transition: opacity 0.5s;
+}
+
 .soon-tip {
   position: absolute;
   top: 10px;
@@ -302,5 +358,40 @@ select {
     border-radius: 0.25rem;
   }
 
+}
+
+input {
+  border-radius: 0.5rem;
+  border: 1px solid var(--blue, #2C6EFF);
+  background: var(--white, #FFF);
+
+  padding: 0.25rem 0.5rem;
+  gap: 0.625rem;
+
+  outline: none;
+
+  &:disabled {
+    background: #ececec;
+    color: #292828;
+  }
+}
+
+.loading {
+  background-color: #e2e5e7;
+  background-image:
+    linear-gradient(45deg,
+      rgba(#fff, 0),
+      rgba(#fff, 0.5),
+      rgba(#fff, 0));
+  background-size: 40px 100%;
+  background-repeat: no-repeat;
+  background-position: left -40px top 0;
+  animation: shine 1.5s ease infinite;
+}
+
+@keyframes shine {
+  to {
+    background-position: right -40px top 0;
+  }
 }
 </style>

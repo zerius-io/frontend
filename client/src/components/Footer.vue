@@ -21,7 +21,7 @@
     </div>
 </template>
   
-<script setup>
+<script setup lang="ts">
 import logoLz from '/img/footer/lz.svg'
 import iconGitbook from '/img/footer/gitbook.png'
 import iconMedium from '/img/footer/github.png'
@@ -47,11 +47,25 @@ $small: 600px;
         height: 2.25rem;
     }
 
-    @media screen and (max-width: $small) {
+    @media screen and (max-width: 1050px) {
         flex-direction: column-reverse;
+    }
 
+    @media screen and (max-width: $small) {
         .icon {
-            margin: 1.5rem 2rem;
+            margin: 1.5rem;
+        }
+    }
+
+    @media screen and (max-width: 400px) {
+        .icon {
+            margin: 1rem;
+        }
+    }
+
+    @media screen and (max-width: 350px) {
+        .icon {
+            margin: .8rem;
         }
     }
 }

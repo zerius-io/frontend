@@ -10,6 +10,7 @@ import ABI from '@/assets/ABI/starknet.json'
 import ABI_ETH from '@/assets/ABI/starknet_eth.json'
 
 const DEV = import.meta.env.DEV
+const LOG = false
 
 const ETH_CONTRACT = '0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7'
 
@@ -96,7 +97,7 @@ export default class Starknet {
     }
 
     static async toggleWallet(walletType?: _starknetWalletType) {
-        if (DEV) console.log('STARKNET WALLET TOOGLE', walletType)
+        if (DEV && LOG) console.log('STARKNET WALLET TOOGLE', walletType)
 
         let WALLET: _starknetWallet | undefined = undefined
 
@@ -104,11 +105,11 @@ export default class Starknet {
             const discoveryWallets = await StarknetCore.default.getDiscoveryWallets()
             const availableWallets = await StarknetCore.default.getAvailableWallets()
 
-            if (DEV) console.log('discoveryWallets', discoveryWallets)
-            if (DEV) console.log('availableWallets', availableWallets)
+            if (DEV && LOG) console.log('discoveryWallets', discoveryWallets)
+            if (DEV && LOG) console.log('availableWallets', availableWallets)
 
             const lastConnectedWallet = await StarknetCore.default.getLastConnectedWallet()
-            if (DEV) console.log('lastConnectedWallet', lastConnectedWallet)
+            if (DEV && LOG) console.log('lastConnectedWallet', lastConnectedWallet)
 
             let walletToConnect = undefined
 
@@ -119,13 +120,13 @@ export default class Starknet {
             if (!walletType) {
                 if (availableWallets && lastConnectedWallet) {
                     walletToConnect = this.walletInArray(availableWallets, lastConnectedWallet?.name) || this.walletInArray(discoveryWallets, lastConnectedWallet?.name)
-                    if (DEV) console.log("WALLET TO RECONNECT", walletToConnect)
+                    if (DEV && LOG) console.log("WALLET TO RECONNECT", walletToConnect)
                 }
             }
 
             if (walletToConnect) WALLET = await this.connect(walletToConnect)
 
-            if (DEV) console.log('WALLET RES', WALLET)
+            if (DEV && LOG) console.log('WALLET RES', WALLET)
             return WALLET
         } catch (error) {
             if (DEV) console.log('STARKNET WALLET TOOGLE ERROR', error)
@@ -139,7 +140,7 @@ export default class Starknet {
             if (!WALLET.isConnected) {
                 RESULT = await WALLET?.enable({ starknetVersion: "v5" })
             } else {
-                if (DEV) console.log('STARKNET CONNECT', WALLET)
+                if (DEV && LOG) console.log('STARKNET CONNECT', WALLET)
                 RESULT = WALLET
             }
 
@@ -175,11 +176,11 @@ export default class Starknet {
 
     static async checkBalance(provider: any, accountAddress: string) {
         const contract = new Contract(ABI_ETH, ETH_CONTRACT, provider)
-        if (DEV) console.log('BALANCE contract', contract)
+        if (DEV && LOG) console.log('BALANCE contract', contract)
 
         const balanceInfo = await contract.balanceOf(accountAddress)
 
-        if (DEV) console.log("Balance", balanceInfo?.balance)
+        if (DEV && LOG) console.log("Balance", balanceInfo?.balance)
 
         let balance = BigInt(0)
         if (balanceInfo?.balance) {
@@ -191,11 +192,11 @@ export default class Starknet {
 
     static async checkAllowance(provider: any, accountAddress: string, contractAddress: string) {
         const contract = new Contract(ABI_ETH, ETH_CONTRACT, provider)
-        if (DEV) console.log('ALLOWANCE contract', contract)
+        if (DEV && LOG) console.log('ALLOWANCE contract', contract)
 
         const allowanceInfo = await contract.allowance(accountAddress, contractAddress)
 
-        if (DEV) console.log('ALLOWANCE RES', allowanceInfo)
+        if (DEV && LOG) console.log('ALLOWANCE RES', allowanceInfo)
 
         let allowance = BigInt(0)
         if (allowanceInfo?.remaining) {
@@ -207,17 +208,17 @@ export default class Starknet {
 
     static async approveMint(provider: any, contractAddress: string, mintFee: bigint): Promise<_starknetTx> {
         const contract = new Contract(ABI_ETH, ETH_CONTRACT, provider)
-        if (DEV) console.log('APPROVE contract', contract)
+        if (DEV && LOG) console.log('APPROVE contract', contract)
 
         const approve = await contract.approve(contractAddress, this.convertBigIntToUint(mintFee))
 
-        if (DEV) console.log('APPROVE RES', approve)
+        if (DEV && LOG) console.log('APPROVE RES', approve)
         return approve
     }
 
     static async mint(toast?: (message: string, data?: any) => void): Promise<TxResult> {
         try {
-            if (DEV) console.log('Starknet Mint..')
+            if (DEV && LOG) console.log('Starknet Mint..')
 
             if (!this.isWalletConnected) {
                 await this.toggleWallet()
@@ -229,10 +230,10 @@ export default class Starknet {
             ]
             const contractAddress = selectedChain.contract
 
-            if (DEV) console.log(selectedChain, contractAddress)
+            if (DEV && LOG) console.log(selectedChain, contractAddress)
 
             if (!this.provider || !this.isWalletConnected || !contractAddress) {
-                if (DEV) console.log(!this.provider, !this.isWalletConnected, !contractAddress)
+                if (DEV && LOG) console.log(!this.provider, !this.isWalletConnected, !contractAddress)
 
                 return {
                     result: false,
@@ -244,17 +245,17 @@ export default class Starknet {
             const _accountAddress = this.provider.account.address
 
             const contract = new Contract(ABI, contractAddress, this.provider.account)
-            if (DEV) console.log('MINT contract', contract)
+            if (DEV && LOG) console.log('MINT contract', contract)
 
             const mintFee = await contract.getMintFee()
-            if (DEV) console.log('mintFee', mintFee)
+            if (DEV && LOG) console.log('mintFee', mintFee)
 
 
             const balance = await this.checkBalance(_provider, _accountAddress)
 
-            if (DEV) console.log('BALANCE', balance)
+            if (DEV && LOG) console.log('BALANCE', balance)
             if (balance < mintFee) {
-                if (DEV) console.log('Not enough funds to mint')
+                if (DEV && LOG) console.log('Not enough funds to mint')
                 return {
                     result: false,
                     msg: 'Not enough funds to mint',
@@ -263,28 +264,28 @@ export default class Starknet {
 
 
             const allowance = await this.checkAllowance(_provider, _accountAddress, contractAddress)
-            if (DEV) console.log('ALLOWANCE', allowance)
+            if (DEV && LOG) console.log('ALLOWANCE', allowance)
 
             if (allowance < mintFee) {
                 const approve = await this.approveMint(_provider, contractAddress, mintFee)
 
-                if (DEV) console.log('APPROVE', approve)
+                if (DEV && LOG) console.log('APPROVE', approve)
                 if (toast) toast("Approve..", { id: selectedChain?.id, hash: approve?.transaction_hash })
 
                 await _provider.waitForTransaction(approve?.transaction_hash)
             }
 
             const nextId = await contract.getNextMintId()
-            if (DEV) console.log('NEXT ID', nextId, nextId.toString(), this.convertBigIntToUint(nextId), Number(nextId))
+            if (DEV && LOG) console.log('NEXT ID', nextId, nextId.toString(), this.convertBigIntToUint(nextId), Number(nextId))
 
 
             const txResponse: _starknetTx = await contract.mint(Number(nextId))
-            if (DEV) console.log('MINT', txResponse)
+            if (DEV && LOG) console.log('MINT', txResponse)
             if (toast) toast("Minting..", { id: selectedChain?.id, hash: txResponse?.transaction_hash })
 
             const receipt = await _provider.waitForTransaction(txResponse?.transaction_hash)
 
-            if (DEV) {
+            if (DEV && LOG) {
                 console.log('Mint confirmed:', receipt)
             }
 
@@ -300,42 +301,6 @@ export default class Starknet {
                 result: false,
                 msg: 'Mint Failed'
             }
-        }
-    }
-
-    static async collection() { // *
-        try {
-            const _accountAddress = this.provider.account.address
-
-            const contractAddress = Config.getChainByName('starknet')?.contract || ''
-            const contract = new Contract(ABI, contractAddress, this.provider.account)
-
-            const ITEMS = []
-
-            try {
-                const tokensCount = await contract.balance_of(_accountAddress)
-                for (let i = 0; i < tokensCount; i++) {
-                    const id = Number(await contract.tokenOfOwnerByIndex(owner, i))
-                    const uri = Config.getIpfsUri(id)
-
-                    const item = { chainId: null, id, uri }
-                    ITEMS.push(item)
-
-                    // yield item
-                }
-
-                ITEMS.push(ITEMS)
-            } catch (error) {
-                if (DEV) console.error('Starknet Error fetch:', error)
-            }
-
-            return ITEMS.flat().sort((a, b) => a.id - b.id)
-        } catch (error) {
-            if (DEV) {
-                console.error('Error fetching collection:', error)
-            }
-
-            return []
         }
     }
 }
