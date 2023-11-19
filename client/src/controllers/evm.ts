@@ -104,6 +104,7 @@ export default class Evm {
 
     static async setChainById(chainId?: number) {
         if (DEV) console.log('[SET CHAIN ID]', `${chainId ? 'SET' + chainId : ''}`, 'CURRENT', this.selectedChain.id)
+        if (DEV) console.trace()
 
         try {
             if (!this.isWalletConnected || !this.selectedChain) return
@@ -128,7 +129,7 @@ export default class Evm {
 
             if (DEV) console.log('ERROR SET CHAIN TO', CHANGE_TO_CHAIN_ID, 'IN WALLET', WALLET_CHAIN_ID)
         } catch (error) {
-            if (DEV) console.error('Error switching chain:', error)
+            if (DEV) console.error('ERROR switching chain', error)
         }
     }
 
@@ -559,6 +560,8 @@ export default class Evm {
     }
 
     static async getMaxTokenValueInDst(fromChainId: number, toChainId: number, normalize = false) {
+        if (DEV) console.log('getMaxTokenValueInDst', 'from', fromChainId, 'to', toChainId)
+
         try {
             if (!this.web3 || !this.isWalletConnected) return
 
@@ -566,21 +569,19 @@ export default class Evm {
 
             const fromChainConfig: _CHAIN = Config.getChainById(fromChainId)
             const toChainConfig: _CHAIN = Config.getChainById(toChainId)
-            if (DEV) console.log('selectedChain', fromChainConfig)
-            if (DEV) console.log('toChainConfig', toChainConfig)
 
             if (DEV && !fromChainConfig.lzRelayer) console.log('NO RELAYER', fromChainConfig.label)
             if (!fromChainConfig.lzRelayer) return null
 
             const contract = new ethers.Contract(fromChainConfig.lzRelayer, ABI_RELAYER, provider)
-            if (DEV) console.log('getMaxTokenValueInDst', fromChainConfig.id, 'to', toChainId, toChainConfig.label, toChainConfig.lzChain)
+            // if (DEV) console.log('getMaxTokenValueInDst', fromChainConfig.id, 'to', toChainId, toChainConfig.label, toChainConfig.lzChain)
 
             const dstConfig = await contract.dstConfigLookup(toChainConfig.lzChain.toString(), "2")
-            if (DEV) console.log('getMaxTokenValueInDst', (normalize ? ethers.formatEther(dstConfig.dstNativeAmtCap) : dstConfig.dstNativeAmtCap) || null)
+            // if (DEV) console.log('getMaxTokenValueInDst', (normalize ? ethers.formatEther(dstConfig.dstNativeAmtCap) : dstConfig.dstNativeAmtCap) || null)
 
             return (normalize ? ethers.formatEther(dstConfig.dstNativeAmtCap) : dstConfig.dstNativeAmtCap) || null
         } catch (error) {
-            if (DEV) console.error('[Error] getMaxTokenValueInDst', error)
+            if (DEV) console.error('[ERROR] getMaxTokenValueInDst', error)
             return null
         }
     }
