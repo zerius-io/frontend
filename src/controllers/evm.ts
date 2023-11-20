@@ -127,7 +127,12 @@ export default class Evm {
                 return
             }
 
-            if (DEV) console.log('ERROR SET CHAIN TO', CHANGE_TO_CHAIN_ID, 'IN WALLET', WALLET_CHAIN_ID)
+            if (WALLET_CHAIN_ID !== CHANGE_TO_CHAIN_ID) {
+                if (DEV) console.log('ERROR SET CHAIN TO', CHANGE_TO_CHAIN_ID, 'IN WALLET', WALLET_CHAIN_ID)
+
+                store.commit('evm/setSelectedChain', Config.getChainById(CURRENT_CHAIN_ID))
+                return
+            }
         } catch (error) {
             if (DEV) console.error('ERROR switching chain', error)
         }

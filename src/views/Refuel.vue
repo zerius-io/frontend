@@ -200,6 +200,8 @@ const state = reactive({
             if ((mounted.value && !state.loading) && state.user.chain?.id !== selectedChainFrom.value?.selected.id) return `Switch network to ${selectedChainFrom.value?.selected.label}`
             if ((mounted.value && !state.loading) && state.refuel.amount.max.raw <= 0) return `Can't bridge to ${selectedChainTo.value?.selected.label}`
 
+            if ((mounted.value && !state.loading) && state.user.balance.raw <= 0) return `Top up wallet`
+
             if (state.refuel.amount.user.raw <= 0) return 'Enter amount'
             if (state.refuel.amount.user.raw > state.user.balance.raw) return 'Insufficient Balance'
             if (state.refuel.amount.user.raw > state.refuel.amount.max.raw) return 'Amount too large'
@@ -241,13 +243,15 @@ const state = reactive({
                 return USD !== 0 ? `$(${USD})` : null
             }),
             output: computed(() => {
-                let output = 0
+                let output = null
 
-                if (state.user.connected && state.refuel.chain.from.id === state.user.chain.id) {
+                if (state.user.connected &&
+                    state.refuel.chain.from.id === state.user.chain.id) {
                     output = normalizeValue(state.user.balance.raw)
                 }
 
-                return output ? output : null
+                if (output === null) return null
+                return output ? `${output} ` : `0 ` + state.refuel.chain.from.token
             })
         }
     },
@@ -287,9 +291,11 @@ const state = reactive({
                                 (state.refuel.amount.max.raw * state.refuel.chain.to.price) / state.refuel.chain.from.price,
                             5
                         )
+
+                        output = normalizeValue(output, output > 1 ? 0 : 5)
                     }
 
-                    return output && output !== Infinity ? output : null
+                    return output && output !== Infinity ? `${output} ${state.refuel.chain.from.token}` : null
                 })
             },
             user: {
@@ -325,7 +331,9 @@ const state = reactive({
 
                     if (state.refuel.fee.lz.raw &&
                         !state.loading &&
-                        state.refuel.fee.native.raw !== null) output = normalizeValue(state.refuel.fee.lz.raw, output > 1 ? 4 : 5)
+                        state.refuel.fee.native.raw !== null) {
+                        output = normalizeValue(state.refuel.fee.lz.raw, state.refuel.fee.lz.raw > 1 ? 4 : 5)
+                    }
 
                     return `${output !== 0 ? output : '--'} ${state.refuel.chain.from.token}`
                 })
@@ -386,13 +394,10 @@ onMounted(async () => {
 
         if (selectedChainFrom.value?.selected && state.user.chain) {
             selectedChainFrom.value.selected = state.user.chain
-            // selectedChainTo.value.selected = Config.getChainById(DEFAULT_CHAIN_TO)
         }
     } catch (error) {
         // console.error("[ERR] On mounted", error)
     } finally {
-        // console.log('LOADED')
-
         await updateBalance()
         await updateData()
 
@@ -400,13 +405,9 @@ onMounted(async () => {
     }
 })
 
-watch(state.user.chain, (newValue, oldValue) => {
-    if (newValue === oldValue) return
-    if (selectedChainFrom.value?.selected) selectedChainFrom.value.selected = newValue
-})
-
 watch(() => Evm.walletAddress, (newValue, oldValue) => {
     if (!mounted.value) return
+    if (newValue === null) return
     if (newValue === oldValue) return
 
     updateData()
@@ -425,6 +426,11 @@ watch(() => Evm.selectedChain, async (newChain, oldChain) => {
     await updateBalance()
 
     state.loading = false
+})
+
+watch(state.user.chain, (newValue, oldValue) => {
+    if (newValue === oldValue) return
+    if (selectedChainFrom.value?.selected) selectedChainFrom.value.selected = newValue
 })
 
 watch(() => state.refuel.chain.to.id, (newChain, oldChain) => {
@@ -447,8 +453,7 @@ watch(() => state.refuel.amount.user.raw, (newVal, oldVal) => {
         <div class="refuel-header">
             <div class="flex column" style="justify-content: flex-start; align-items: flex-start;">
                 <div>From</div>
-                <custom-select ref="selectedChainFrom" :options="Config.chains" :isolate="true" class="select-modal"
-                    :initialChainId="state.user.chain.id" />
+                <custom-select ref="selectedChainFrom" :options="Config.chains" :isolate="true" class="select-modal" />
             </div>
 
             <img @click="switchChains" :src="switch_img" alt="switch" class="refuel-header-switch">

@@ -1,7 +1,5 @@
-# Zerius
+# Zerius app
 
-Front & Back
-
-![Zerius](./client/public/img/logo.svg)
+![Zerius](./public/img/logo.svg)
 
 2023
