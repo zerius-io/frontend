@@ -117,6 +117,26 @@
             "name": "Metis",
             "url": "https://zerius.mypinata.cloud/ipfs/QmaGzVQdLxY4LuCxPsfvXm1ZKBir7VRcdrjKUcG1MG3xW5/"
         },
+        "12000001-12020000": {
+            "name": "Mantle",
+            "url": "https://zerius.mypinata.cloud/ipfs/QmYZnHfSaih7XfwpxoW8qf1fb5QuBNxqghFPg5EycnNapV/"
+        },
+        "12020001-12040000": {
+            "name": "Mantle",
+            "url": "https://zerius.mypinata.cloud/ipfs/Qmc1gUbRWPS2HeoBTTP9XbXmyafgzL7Y3zDrUM7GGGNad9/"
+        },
+        "12040001-12060000": {
+            "name": "Mantle",
+            "url": "https://zerius.mypinata.cloud/ipfs/QmeRAin7WDuJpcVPP8GPQbeR9W5tkt3z9StwCqBp8Jy6qC/"
+        },
+        "12060001-12080000": {
+            "name": "Mantle",
+            "url": "https://zerius.mypinata.cloud/ipfs/QmWNcgETXtQ1ZJs39mWT4r9ct7AT7rSmnQ9Rq7AUxGsEuW/"
+        },
+        "12080001-12100000": {
+            "name": "Mantle",
+            "url": "https://zerius.mypinata.cloud/ipfs/QmerYQtwXx1tJgbRzKxnPpphAUss9kE4pDWBDhev4stcUQ/"
+        },
         "15000001-20000000": {
             "name": "Starknet",
             "url": "https://zerius.mypinata.cloud/ipfs/QmUeFoCrFwJzpf2cXv2ocz2EFYZXGSKDG79BbxmLLrNuYg/"
@@ -132,7 +152,10 @@
             "contract": "0x178608fFe2Cca5d36f3Fc6e69426c4D3A5A74A41",
             "refuelContract": "0x902f09715b6303d4173037652fa7377e5b98089e",
             "lzRelayer": "0x902f09715b6303d4173037652fa7377e5b98089e",
-            "explorer": "https://etherscan.io"
+            "explorer": "https://etherscan.io",
+            "block": [
+                0
+            ]
         },
         {
             "id": 2344859429196833,
@@ -145,7 +168,7 @@
             "explorer": "https://starkscan.co/",
             "noEVM": true,
             "block": [
-                0
+                5000
             ]
         },
         {
@@ -167,7 +190,7 @@
             "rpcUrl": "https://mainnet.era.zksync.io",
             "lzChain": 165,
             "contract": "0x7da50bd0fb3c2e868069d9271a2aeb7ed943c2d6",
-            "refuelContract": "0x7dA50bD0fb3C2E868069d9271A2aeb7eD943c2D6",
+            "refuelContract": "0xec8afef7afe586eb523c228b6baf3171b1f6dd95",
             "lzRelayer": "0x9923573104957bf457a3c4df0e21c8b389dd43df",
             "explorer": "https://explorer.zksync.io",
             "block": [
@@ -177,7 +200,8 @@
                 1284,
                 1116,
                 42220,
-                324
+                324,
+                5000
             ]
         },
         {
@@ -197,6 +221,52 @@
                 7700,
                 8453,
                 1666600000
+            ]
+        },
+        {
+            "id": 59144,
+            "token": "ETH",
+            "label": "Linea",
+            "rpcUrl": "https://linea.drpc.org",
+            "lzChain": 183,
+            "contract": "0x5188368a92B49F30f4Cf9bEF64635bCf8459c7A7",
+            "refuelContract": "0x5B209E7c81DEaad0ffb8b76b696dBb4633A318CD",
+            "lzRelayer": "0xA658742d33ebd2ce2F0bdFf73515Aa797Fd161D9",
+            "explorer": "https://lineascan.build/",
+            "block": [
+                534352,
+                7777777,
+                42170,
+                1284,
+                1116,
+                42220,
+                7700,
+                59144
+            ]
+        },
+        {
+            "id": 5000,
+            "token": "MNT",
+            "label": "Mantle",
+            "rpcUrl": "https://rpc.mantle.xyz",
+            "lzChain": 181,
+            "contract": "0x5188368a92B49F30f4Cf9bEF64635bCf8459c7A7",
+            "refuelContract": "0x4F1C698e5cA32b28030E9d9F17C164F27aB5D866",
+            "lzRelayer": "0xcb566e3B6934Fa77258d68ea18E931fa75e1aaAa",
+            "icon": "mantle.svg",
+            "explorer": "https://explorer.mantle.xyz/",
+            "block": [
+                1,
+                7777777,
+                534352,
+                324,
+                42170,
+                1284,
+                1116,
+                42220,
+                1666600000,
+                7700,
+                5000
             ]
         },
         {
@@ -308,7 +378,8 @@
                 1666600000,
                 7700,
                 1116,
-                42220
+                42220,
+                5000
             ]
         },
         {
@@ -334,7 +405,8 @@
                 1666600000,
                 7700,
                 42220,
-                1116
+                1116,
+                5000
             ]
         },
         {
@@ -358,7 +430,8 @@
                 42220,
                 7700,
                 250,
-                1666600000
+                1666600000,
+                5000
             ]
         },
         {
@@ -380,28 +453,8 @@
                 534352,
                 8453,
                 59144,
-                7700
-            ]
-        },
-        {
-            "id": 59144,
-            "token": "ETH",
-            "label": "Linea",
-            "rpcUrl": "https://linea.drpc.org",
-            "lzChain": 183,
-            "contract": "0x5188368a92B49F30f4Cf9bEF64635bCf8459c7A7",
-            "refuelContract": "0x5B209E7c81DEaad0ffb8b76b696dBb4633A318CD",
-            "lzRelayer": "0xA658742d33ebd2ce2F0bdFf73515Aa797Fd161D9",
-            "explorer": "https://lineascan.build/",
-            "block": [
-                534352,
-                7777777,
-                42170,
-                1284,
-                1116,
-                42220,
                 7700,
-                59144
+                5000
             ]
         },
         {
@@ -422,7 +475,8 @@
                 1101,
                 1116,
                 42220,
-                42170
+                42170,
+                5000
             ]
         },
         {
@@ -486,7 +540,7 @@
             "lzChain": 195,
             "contract": "0x178608fFe2Cca5d36f3Fc6e69426c4D3A5A74A41",
             "refuelContract": "0x1fe2c567169d39CCc5299727FfAC96362b2Ab90E",
-            "lzRelayer": "",
+            "lzRelayer": "0xA658742d33ebd2ce2F0bdFf73515Aa797Fd161D9",
             "explorer": "https://explorer.zora.energy/",
             "block": [
                 56,
@@ -502,7 +556,8 @@
                 1116,
                 42220,
                 7700,
-                7777777
+                7777777,
+                5000
             ]
         },
         {
@@ -514,7 +569,7 @@
             "lzChain": 214,
             "contract": "0xEB22C3e221080eAD305CAE5f37F0753970d973Cd",
             "refuelContract": "0xB074f8D92b930D3415DA6bA80F6D38f69ee4B9cf",
-            "lzRelayer": "",
+            "lzRelayer": "0xA658742d33ebd2ce2F0bdFf73515Aa797Fd161D9",
             "explorer": "https://scrollscan.com",
             "block": [
                 7777777,
@@ -528,7 +583,8 @@
                 1116,
                 42220,
                 7700,
-                534352
+                534352,
+                5000
             ]
         }
     ]
