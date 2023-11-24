@@ -1,4 +1,4 @@
-import { cairo, Contract, Uint256 } from "starknet"
+import { cairo, CallData, Contract, Uint256 } from "starknet"
 import * as StarknetCore from "get-starknet-core"
 
 import store from '@/store'
@@ -218,89 +218,74 @@ export default class Starknet {
 
     static async mint(toast?: (message: string, data?: any) => void): Promise<TxResult> {
         try {
-            if (DEV && LOG) console.log('Starknet Mint..')
+            if (DEV) console.log('Starknet Mint..');
 
             if (!this.isWalletConnected) {
-                await this.toggleWallet()
+                await this.toggleWallet();
             }
 
-            // await Evm.setChainById()
-
-            const selectedChain = store.getters['evm/selectedChain'
-            ]
-            const contractAddress = selectedChain.contract
-
-            if (DEV && LOG) console.log(selectedChain, contractAddress)
+            const selectedChain = store.getters['evm/selectedChain'];
+            const contractAddress = selectedChain.contract;
 
             if (!this.provider || !this.isWalletConnected || !contractAddress) {
-                if (DEV && LOG) console.log(!this.provider, !this.isWalletConnected, !contractAddress)
-
                 return {
                     result: false,
                     msg: 'Something went wrong :(',
                 }
             }
 
-            const _provider = this.provider.account
-            const _accountAddress = this.provider.account.address
+            const _provider = this.provider.account;
+            const _accountAddress = this.provider.account.address;
 
-            const contract = new Contract(ABI, contractAddress, this.provider.account)
-            if (DEV && LOG) console.log('MINT contract', contract)
-
+            const contract = new Contract(ABI, contractAddress, this.provider.account);
             const mintFee = await contract.getMintFee()
-            if (DEV && LOG) console.log('mintFee', mintFee)
+            const nextId = await contract.getNextMintId()
 
-
-            const balance = await this.checkBalance(_provider, _accountAddress)
-
-            if (DEV && LOG) console.log('BALANCE', balance)
+            const balance = await this.checkBalance(_provider, _accountAddress);
             if (balance < mintFee) {
-                if (DEV && LOG) console.log('Not enough funds to mint')
                 return {
                     result: false,
                     msg: 'Not enough funds to mint',
                 }
             }
 
+            const multiCall = await _provider.execute([
+                {
+                    contractAddress: ETH_CONTRACT,
+                    entrypoint: "approve",
+                    calldata: CallData.compile({
+                        spender: contractAddress,
+                        amount: cairo.uint256(mintFee),
+                    }),
+                },
+                {
+                    contractAddress: contractAddress,
+                    entrypoint: "mint",
+                    calldata: CallData.compile({
+                        uri: nextId
+                    })
+                }
+            ])
 
-            const allowance = await this.checkAllowance(_provider, _accountAddress, contractAddress)
-            if (DEV && LOG) console.log('ALLOWANCE', allowance)
+            if (DEV) console.log('Multi-Call Response:', multiCall);
+            if (toast) toast("Minting..", { id: selectedChain?.id, hash: multiCall?.transaction_hash });
 
-            if (allowance < mintFee) {
-                const approve = await this.approveMint(_provider, contractAddress, mintFee)
-
-                if (DEV && LOG) console.log('APPROVE', approve)
-                if (toast) toast("Approve..", { id: selectedChain?.id, hash: approve?.transaction_hash })
-
-                await _provider.waitForTransaction(approve?.transaction_hash)
-            }
-
-            const nextId = await contract.getNextMintId()
-            if (DEV && LOG) console.log('NEXT ID', nextId, nextId.toString(), this.convertBigIntToUint(nextId), Number(nextId))
-
-
-            const txResponse: _starknetTx = await contract.mint(Number(nextId))
-            if (DEV && LOG) console.log('MINT', txResponse)
-            if (toast) toast("Minting..", { id: selectedChain?.id, hash: txResponse?.transaction_hash })
-
-            const receipt = await _provider.waitForTransaction(txResponse?.transaction_hash)
-
-            if (DEV && LOG) {
+            const receipt = await _provider.waitForTransaction(multiCall?.transaction_hash)
+            if (DEV) {
                 console.log('Mint confirmed:', receipt)
             }
 
             return {
                 result: receipt.execution_status === 'SUCCEEDED',
-                msg: receipt.execution_status === 'SUCCEEDED' ? 'Successful Mint' : 'Mint not confirmed', // (receipt.status == null ? 'Mint not confirmed' : 'Mint Failed'
-                receipt
-            }
+                msg: receipt.execution_status === 'SUCCEEDED' ? 'Successful Mint' : 'Mint not confirmed',
+                receipt,
+            };
         } catch (error) {
-            if (DEV) console.error('Error minting NFT:', error)
-
+            if (DEV) console.error('Error in multi-call minting:', error);
             return {
                 result: false,
-                msg: 'Mint Failed'
-            }
+                msg: 'Mint Failed',
+            };
         }
     }
 }

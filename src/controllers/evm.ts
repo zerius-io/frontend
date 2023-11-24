@@ -114,6 +114,9 @@ export default class Evm {
 
             if (CURRENT_CHAIN_ID === CHANGE_TO_CHAIN_ID || CURRENT_CHAIN_ID === this.toHex(CHANGE_TO_CHAIN_ID)) return
 
+            const chainConfig = Config.getChainById(this.selectedChain.id)
+            if (chainConfig?.noEVM !== undefined) return
+
             let { setChain } = useOnboard()
             await setChain({ wallet: this.connectedWallet?.label, chainId: CHANGE_TO_CHAIN_ID })
 

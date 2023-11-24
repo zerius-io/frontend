@@ -69,7 +69,7 @@ async function mint() {
             extractItemId(receipt, chainId) :
             extractItemIdStarknet(receipt)
 
-        if (!itemId) {
+        if (!itemId && !isStarknet()) {
             itemId = await waitForItemId(receipt.hash, chainId, 5)
         }
 
@@ -106,7 +106,7 @@ function extractItemId(receipt: { logs: { topics: any[] }[] }, chainId: number) 
 }
 
 function extractItemIdStarknet(receipt: { events: { data: string[] }[] }) {
-    let itemId = receipt?.events?.[1]?.data?.[2]
+    let itemId = receipt?.events?.[2]?.data?.[2]
     return itemId ? BigInt(itemId) : null
 }
 
