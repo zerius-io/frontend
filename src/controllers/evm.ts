@@ -505,7 +505,14 @@ export default class Evm {
     }
 
     static async fetchPrice(symbol: string): Promise<number | null> {
-        const url: string = `https://min-api.cryptocompare.com/data/price?fsym=${symbol.toUpperCase()}&tsyms=USDT`
+        let fetchSymbol = ""
+        if (symbol == "MNT") {
+            fetchSymbol = "MANTLE"
+        } else {
+            fetchSymbol = symbol
+        }
+
+        const url: string = `https://min-api.cryptocompare.com/data/price?fsym=${fetchSymbol.toUpperCase()}&tsyms=USDT`
 
         try {
             const response: AxiosResponse = await axios.get(url, { timeout: 10000 })
