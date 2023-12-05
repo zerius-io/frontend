@@ -20,6 +20,12 @@
             <router-link to="/refuel" :class="{ active: route.path === '/refuel' }" class="nav" style="position: relative">
                 <h3>
                     Refuel
+                </h3>
+            </router-link>
+
+            <router-link to="/referral" :class="{ active: route.path === '/referral' }" class="nav" style="position: relative">
+                <h3>
+                    Referral
                     <span class="soon-tip" style="background: var(--red, #FF2C6E);">new</span>
                 </h3>
             </router-link>

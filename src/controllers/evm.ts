@@ -20,8 +20,8 @@ const DEV = import.meta.env.DEV
 const LZ_VERSION = 1
 
 const API_URL = DEV ?
-    `http://localhost:3000/api/collection` :
-    `https://zerius.io/api/collection`
+    `http://localhost:3000/api/` :
+    `https://zerius.io/api/`
 
 export interface TxResult {
     result: boolean;
@@ -34,6 +34,13 @@ export interface CollectionItem {
     id: number
     uri: string
 }
+
+export interface ReferralStats {
+    chainId: number | null
+    earnedAmount: number
+    txCount: number
+}
+
 export default class Evm {
     static get web3() {
         return window.ethereum
@@ -186,7 +193,22 @@ export default class Evm {
             const contract = new ethers.Contract(contractAddress, ABI, signer)
             const mintFee = await contract.mintFee()
 
-            let options = { value: BigInt(mintFee), gasLimit: BigInt(0) }
+
+            let refFromStorage = ''
+            let decodeAddress = ''
+            try {
+                refFromStorage = localStorage.getItem('refCode')
+                decodeAddress = this.decodeAddress(refFromStorage)
+                // if (DEV) console.log(refFromStorage, decodeAddress)
+            } catch (error) { }
+
+            if (decodeAddress === sender) {
+                refFromStorage = ''
+            }
+            const referrer = decodeAddress
+            if (DEV) console.log("referrer", referrer)
+
+            let options: any = { value: BigInt(mintFee), gasLimit: BigInt(0) }
 
             const TOTAL_COST = mintFee
 
@@ -200,10 +222,19 @@ export default class Evm {
                 }
             }
 
-            const gasLimit = await contract.mint.estimateGas(options)
-            options.gasLimit = gasLimit
 
-            const txResponse = await contract.mint(options)
+            let gasLimit, txResponse
+            if (referrer) {
+                gasLimit = await contract['mint(address)'].estimateGas(referrer, options)
+                options.gasLimit = gasLimit
+
+                txResponse = await contract['mint(address)'](referrer, options)
+            } else {
+                gasLimit = await contract.mint.estimateGas(options)
+                options.gasLimit = gasLimit
+
+                txResponse = await contract.mint(options)
+            }
 
             if (DEV) {
                 console.log('Transaction sent:', txResponse)
@@ -447,7 +478,7 @@ export default class Evm {
 
             if (DEV) console.log('FETCH COLLECTION DO', evmAddress, starknetAddress)
 
-            const response = await axios.post(API_URL, { evmAddress, starknetAddress })
+            const response = await axios.post(API_URL + 'collection', { evmAddress, starknetAddress })
 
             const data: CollectionItem[] = response.data || []
 
@@ -709,6 +740,120 @@ export default class Evm {
                 result: false,
                 msg: 'Refuel failed',
             };
+        }
+    }
+
+    static convertAddress(hexString: string): string {
+        try {
+            if (hexString.startsWith('0x')) hexString = hexString.substring(2)
+
+            const byteArray = new Uint8Array(hexString.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)))
+
+            let binaryString = ''
+            byteArray.forEach(byte => binaryString += String.fromCharCode(byte))
+
+            binaryString = btoa(binaryString)
+            return binaryString.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+        } catch (error) {
+            return ''
+        }
+    }
+
+    static decodeAddress(encodedString: string): string {
+        try {
+            encodedString = encodedString.replace(/-/g, '+').replace(/_/g, '/')
+
+            const binaryString = atob(encodedString)
+
+            let hexString = ''
+            for (let i = 0; i < binaryString.length; i++) {
+                let hex = binaryString.charCodeAt(i).toString(16)
+                hexString += (hex.length === 2 ? hex : '0' + hex)
+            }
+
+            hexString = '0x' + hexString
+
+            return hexString
+        } catch (error) {
+            return ''
+        }
+    }
+
+    static async fetchReferralStats(): Promise<ReferralStats[]> {
+        try {
+            if (!this.web3 || !this.isWalletConnected) return
+            if (DEV) console.log('FETCH REFERRALS')
+
+            let payload: any = {}
+
+            const evmAddress = this.walletAddress
+            if (evmAddress && evmAddress.length === 42) payload.evmAddress = evmAddress
+
+            if (DEV) console.log('FETCH REFERRALS DO', evmAddress)
+
+            const response = await axios.post(API_URL + 'referral', { evmAddress })
+
+            const data: any[] = response.data || []
+
+            if (DEV) console.log('FETCHED REFERRALS', data)
+            return data
+        } catch (error) {
+            if (DEV) console.error('[Error] FETCHING REFERRALS', error)
+            return []
+        }
+    }
+
+    static async claimReferralFee(toast?: (message: string, data?: any) => void): Promise<TxResult> {
+        try {
+            if (DEV) console.log('ClaimReferralFee..')
+
+            if (!this.isWalletConnected) {
+                await this.toggleWallet()
+            }
+
+            const selectedChain = store.getters['evm/selectedChain']
+            const contractAddress = selectedChain.contract
+
+            if (!this.web3 || !this.isWalletConnected || !contractAddress) {
+                if (DEV) console.log(!this.web3, !this.isWalletConnected, !contractAddress)
+
+                return {
+                    result: false,
+                    msg: 'Something went wrong :(',
+                }
+            }
+
+            const web3 = this.web3
+            const provider = new ethers.BrowserProvider(web3)
+
+            const signer = await provider.getSigner()
+            const sender = await signer.getAddress()
+
+            const contract = new ethers.Contract(contractAddress, ABI, signer)
+
+
+            const txResponse = await contract.claimReferrerEarnings()
+            if (DEV) {
+                console.log('Transaction sent:', txResponse)
+            }
+
+            const receipt = await txResponse.wait(null, 60000)
+            if (DEV) {
+                console.log('Claim confirmed:', receipt)
+            }
+
+            return {
+                result: receipt.status === 1,
+                msg: receipt.status === 1 ? 'Successful Claim' : (receipt.status == null ? 'Claim not confirmed' : 'Claim Failed'),
+                receipt
+            }
+        } catch (error) {
+            if (DEV) console.error('Error claim:', error)
+
+            return {
+                result: false,
+                msg: 'Claim Failed'
+            }
         }
     }
 }

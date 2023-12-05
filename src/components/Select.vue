@@ -17,6 +17,10 @@ const props = defineProps({
     isolate: {
         type: Boolean,
         default: false,
+    },
+    referral: {
+        type: Boolean,
+        default: false,
     }
 })
 
@@ -35,6 +39,10 @@ defineExpose({ selected })
 
 const filteredOptions = computed(() => {
     const walletSelectedChain = store.state.evm.selectedChain?.id || null
+
+    if (props.referral && props.options) {
+        return props.options
+    }
 
     if (props.isolate) {
         let SELECT_CHAINS = []
@@ -73,6 +81,10 @@ const selectOption = (option) => {
 
     if (!props.isolate) {
         store.commit('evm/setSelectedChain', selected.value)
+    }
+
+    if (props.referral) {
+        Evm.setChainById(selected.value.id)
     }
 
     emit('change')
@@ -152,7 +164,8 @@ watchEffect(() => {
             <div v-for="(option, i) of filteredOptions" :key="i" @click="selectOption(option)" class="select__items-item">
                 <img :src="getImageSrc(option)" class="select__icon" />
                 {{ option.label }}
-                <span v-if="option.new" class="new-tip">new</span>
+                <span v-if="option.new && !option?.availableForClaim" class="new-tip">new</span>
+                <span v-if="option?.availableForClaim" style="margin-left: 1rem;">🔴</span>
             </div>
         </div>
     </div>
