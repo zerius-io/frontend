@@ -230,10 +230,10 @@ export default class Evm {
 
                 txResponse = await contract['mint(address)'](referrer, options)
             } else {
-                gasLimit = await contract.mint.estimateGas(options)
+                gasLimit = await contract['mint()'].estimateGas(options)
                 options.gasLimit = gasLimit
 
-                txResponse = await contract.mint(options)
+                txResponse = await contract['mint()'](options)
             }
 
             if (DEV) {
